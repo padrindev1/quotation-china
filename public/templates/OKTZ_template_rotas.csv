@@ -1,0 +1,54 @@
+﻿# ============================================================
+# OKTZ ERP — Template de Importação de Rotas  v1.0
+# ============================================================
+#
+# COMO PREENCHER:
+#   1. Mantenha este arquivo no formato CSV (separado por vírgula)
+#   2. Preencha ABAIXO da linha de cabeçalho — uma linha por operação
+#   3. NÃO modifique os nomes das colunas na linha de cabeçalho
+#   4. Campos obrigatórios: referencia, origem, destino, modal
+#   5. Exporte como CSV UTF-8 antes de fazer upload em cotacao-china
+#   6. Linhas que começam com # são ignoradas pelo importador
+#
+# ============================================================
+# GUIA DE CAMPOS
+# ============================================================
+#
+# COLUNA         OBRIG.  VALORES ACEITOS / EXEMPLO
+# ─────────────────────────────────────────────────────────────
+# referencia       SIM   Texto livre: OP-001  /  Operação Foshan 01
+# descricao        não   Texto livre: Maquinário Industrial CNC
+# oc               não   Número da OC: OC 2576
+# origem           SIM   Cidade na China: Foshan / Shanghai / Wenzhou
+# tipo_origem      não   factory | warehouse | port | airport | freezone | city
+# destino          SIM   Porto ou cidade: Guangzhou / Nansha  /  Santos, Brasil
+# tipo_destino     não   factory | warehouse | port | airport | freezone | city
+# modal            SIM   road | rail | river | air
+# peso_kg          não   Peso total em kg (apenas número): 5000
+# volume_m3        não   Volume em m³ (decimal): 25.5
+# qtd_containers   não   Quantidade de containers: 1
+# tipo_container   não   20gp | 40gp | 40hc | 45hc | lcl
+# item_N_desc      não   Descrição do item N  (N = 1 a 5)
+# item_N_qtd       não   Quantidade do item N
+# item_N_un        não   UN | KG | M | M2 | M3 | CX | PC
+# item_N_usd       não   Valor unitário em USD do item N
+#
+# ============================================================
+# PORTOS CHINESES SUPORTADOS (use exatamente como abaixo):
+#   Shanghai
+#   Shenzhen / Yantian
+#   Guangzhou / Nansha
+#   Ningbo-Zhoushan
+#   Tianjin
+#   Qingdao
+#   Xiamen
+#   Dalian
+#
+# DESTINO BRASIL (padrão): Santos, Brasil
+# ============================================================
+referencia,descricao,oc,origem,tipo_origem,destino,tipo_destino,modal,peso_kg,volume_m3,qtd_containers,tipo_container,item_1_desc,item_1_qtd,item_1_un,item_1_usd,item_2_desc,item_2_qtd,item_2_un,item_2_usd,item_3_desc,item_3_qtd,item_3_un,item_3_usd,item_4_desc,item_4_qtd,item_4_un,item_4_usd,item_5_desc,item_5_qtd,item_5_un,item_5_usd
+OP-001,Maquinário Industrial CNC,OC 2576,Foshan,factory,Guangzhou / Nansha,port,road,5000,25,1,40hc,Máquina CNC,1,UN,15000,Peças de Reposição,50,CX,2500,Manual Técnico,5,UN,0,,,,,,,,,
+OP-002,Equipamentos de Embalagem,OC 2709,Liaocheng,factory,Qingdao,port,road,8000,42,1,40hc,Máquina de Embalagem Automática,2,UN,22000,Painel de Controle,2,UN,3500,Cabos e Fiação,1,CX,800,Ferramentas de Instalação,1,CX,400,,,
+OP-003,Componentes Eletrônicos,OC 37578,Huzhou,factory,Shanghai,port,road,1200,8,1,20gp,PCB Boards,500,UN,12000,Sensores Industriais,200,UN,4000,Conectores,1000,UN,1500,,,,,,,
+OP-004,Equipamentos Laser,OC 2578,Liaocheng,factory,Tianjin,port,road,3500,18,1,40gp,Laser de Corte CNC,1,UN,35000,Chiller Refrigerador,1,UN,4500,,,,,,,,,,,
+OP-005,Maquinário Têxtil,OC 37800,Dongguan,factory,Shenzhen / Yantian,port,road,6200,32,1,40hc,Bordadeira Industrial 20 Cabeças,1,UN,28000,Linha de Linha Automática,2,UN,3200,Motor de Reposição,4,UN,800,Software CNC,1,UN,1200,Parafusos e Fixações,1,CX,300

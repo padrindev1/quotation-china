@@ -370,17 +370,26 @@ select option{background:#111c2b}
         <div class="csv-import-sec">
           <div class="csv-import-actions">
             <button class="btn btn-tpl" onclick="downloadCSVTemplate()"><i class="fas fa-download"></i> Baixar Planilha Modelo</button>
-            <button class="btn btn-ghost" onclick="toggleCsvGuide()" id="btnCsvGuide"><i class="fas fa-question-circle"></i> Ver Formato</button>
+            <a class="btn btn-ghost" href="/templates/OKTZ_template_rotas.csv" target="_blank" style="display:flex;align-items:center;gap:5px;justify-content:center;text-decoration:none;font-size:.74rem;padding:8px 10px"><i class="fas fa-external-link-alt"></i> Abrir</a>
+            <button class="btn btn-ghost" onclick="toggleCsvGuide()" id="btnCsvGuide"><i class="fas fa-question-circle"></i> Guia</button>
           </div>
           <div id="csvGuideBox" class="csv-guide-box" style="display:none">
-            <h4><i class="fas fa-table"></i> Formato OKTZ — Campos da Planilha</h4>
+            <h4><i class="fas fa-shoe-prints"></i> Como usar a planilha</h4>
+            <div style="color:#7dd3fc;font-size:.68rem;margin-bottom:8px;line-height:1.6">
+              1. <strong>Baixe</strong> a planilha modelo (CSV)<br>
+              2. Abra no <strong>Google Sheets</strong> ou <strong>Excel</strong><br>
+              3. Preencha uma linha por operação (linhas com <code>#</code> são instruções, não apague)<br>
+              4. <strong>Exporte/Salve como CSV</strong> (UTF-8, separado por vírgula)<br>
+              5. Faça o <strong>upload</strong> aqui e clique Importar
+            </div>
+            <h4 style="margin-top:8px"><i class="fas fa-table"></i> Campos — obrigatórios em <span style="color:#e8b84b">amarelo</span></h4>
             <div class="csv-guide-fields">
               <div class="csv-field csv-field-req"><code>referencia</code><span>REF da operação <em>(obrig.)</em></span></div>
               <div class="csv-field"><code>descricao</code><span>Descrição livre</span></div>
               <div class="csv-field"><code>oc</code><span>Número da OC</span></div>
-              <div class="csv-field csv-field-req"><code>origem</code><span>Cidade origem <em>(obrig.)</em></span></div>
+              <div class="csv-field csv-field-req"><code>origem</code><span>Cidade na China <em>(obrig.)</em></span></div>
               <div class="csv-field"><code>tipo_origem</code><span>factory | warehouse | port</span></div>
-              <div class="csv-field csv-field-req"><code>destino</code><span>Cidade destino <em>(obrig.)</em></span></div>
+              <div class="csv-field csv-field-req"><code>destino</code><span>Porto / cidade destino <em>(obrig.)</em></span></div>
               <div class="csv-field"><code>tipo_destino</code><span>port | warehouse | city</span></div>
               <div class="csv-field csv-field-req"><code>modal</code><span>road | rail | river | air</span></div>
               <div class="csv-field"><code>peso_kg</code><span>Peso total (KG)</span></div>
@@ -389,7 +398,7 @@ select option{background:#111c2b}
               <div class="csv-field"><code>tipo_container</code><span>20gp | 40gp | 40hc | 45hc</span></div>
             </div>
             <div class="csv-enum">Itens (até 5): <code>item_N_desc</code>, <code>item_N_qtd</code>, <code>item_N_un</code> (UN|KG|M|M2|M3|CX|PC), <code>item_N_usd</code></div>
-            <div class="csv-enum" style="margin-top:4px">Suporte legado: formatos anteriores de planilha ZAP também são reconhecidos automaticamente.</div>
+            <div class="csv-enum" style="margin-top:4px;color:#4ecdc4">Portos suportados: Shanghai · Shenzhen/Yantian · Guangzhou/Nansha · Ningbo-Zhoushan · Tianjin · Qingdao · Xiamen · Dalian</div>
           </div>
           <div class="csv-upload-row">
             <input type="file" id="csvFile" accept=".csv">
@@ -2814,72 +2823,12 @@ let _csvFormat = 'legacy';     // 'oktz' | 'legacy'
 
 // ── Template download ────────────────────────────────────
 function downloadCSVTemplate(){
-  const header = [
-    'referencia','descricao','oc',
-    'origem','tipo_origem','destino','tipo_destino','modal',
-    'peso_kg','volume_m3','qtd_containers','tipo_container',
-    'item_1_desc','item_1_qtd','item_1_un','item_1_usd',
-    'item_2_desc','item_2_qtd','item_2_un','item_2_usd',
-    'item_3_desc','item_3_qtd','item_3_un','item_3_usd',
-    'item_4_desc','item_4_qtd','item_4_un','item_4_usd',
-    'item_5_desc','item_5_qtd','item_5_un','item_5_usd',
-  ].join(',');
-
-  const example1 = [
-    'OP-001','Maquinário Industrial CNC','OC 2576',
-    'Foshan','factory','Guangzhou / Nansha','port','road',
-    '5000','25','1','40hc',
-    'Máquina CNC','1','UN','15000',
-    'Peças de Reposição','50','CX','2500',
-    '','','','',
-    '','','','',
-    '','','','',
-  ].join(',');
-
-  const example2 = [
-    'OP-002','Equipamentos de Embalagem','OC 2709',
-    'Liaocheng','factory','Qingdao','port','road',
-    '8000','42','1','40hc',
-    'Máquina de Embalagem Automática','2','UN','22000',
-    'Painel de Controle','2','UN','3500',
-    'Cabos e Fiação','1','CX','800',
-    '','','','',
-    '','','','',
-  ].join(',');
-
-  const example3 = [
-    'OP-003','Componentes Eletrônicos','OC 37578',
-    'Huzhou','factory','Shanghai','port','road',
-    '1200','8',,'1','20gp',
-    'PCB Boards','500','UN','12000',
-    'Sensores Industriais','200','UN','4000',
-    '','','','',
-    '','','','',
-    '','','','',
-  ].join(',').replace(',,',',' );
-
-  const comments = [
-    '# OKTZ ERP — Template de Importação de Rotas v1.0',
-    '# Formato: OKTZ-OP-IMPORT',
-    '# tipo_origem/tipo_destino: factory | warehouse | port | airport | freezone | city',
-    '# modal: road | rail | river | air',
-    '# tipo_container: 20gp | 40gp | 40hc | 45hc | lcl',
-    '# item_N_un: UN | KG | M | M2 | M3 | CX | PC',
-    '# Linhas começando com # são ignoradas',
-    '#',
-  ].join('\n');
-
-  const csv = comments + '\n' + header + '\n' + example1 + '\n' + example2 + '\n' + example3 + '\n';
-
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
+  a.href = '/templates/OKTZ_template_rotas.csv';
   a.download = 'OKTZ_template_rotas.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
   notify('Planilha modelo baixada!', 'ok');
 }
 
@@ -2895,7 +2844,7 @@ function toggleCsvGuide(){
 
 // ── Format detection ─────────────────────────────────────
 function isOKTZFormat(data){
-  for(const row of data.slice(0, 12)){
+  for(const row of data.slice(0, 50)){
     const line = (row[0] || '').trim();
     if(line.startsWith('#')) continue;
     // Header row contains 'referencia' and 'modal'
