@@ -1,0 +1,2762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotação Importação China</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--gold:#e8b84b;--dark:#0d1520;--panel:#111c2b;--border:#1e3050;--text:#dde6f0;--muted:#6a7f96;--sidebar-width:360px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif;background:var(--dark);color:var(--text)}
+/* ── HEADER ── */
+#hdr{display:flex;align-items:center;gap:12px;padding:10px 18px;background:linear-gradient(90deg,#0a1525,#132035);border-bottom:2px solid var(--gold);z-index:1000;flex-shrink:0}
+#hdr .logo{font-size:1.6rem;color:var(--gold)}
+#hdr h1{font-size:1.05rem;font-weight:700;color:#fff}
+#hdr p{font-size:.7rem;color:var(--muted)}
+#hdr .hdr-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+/* ── LAYOUT ── */
+#app{display:flex;height:calc(100vh - 58px)}
+/* ── SIDEBAR ── */
+#sidebar{width:var(--sidebar-width);background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+#sidebarResize{display:flex;align-items:center;gap:8px;margin:0 12px;height:30px;flex-shrink:0}
+#sidebarResize input[type="range"]{width:120px;height:4px;cursor:pointer}
+.resize-label{font-size:.7rem;color:var(--muted);white-space:nowrap}
+#sidebar-body{overflow-y:auto;flex:1}
+#sidebar-body::-webkit-scrollbar{width:4px}
+#sidebar-body::-webkit-scrollbar-thumb{background:#2a4060;border-radius:2px}
+/* ── MAP ── */
+#mapwrap{position:relative;flex:1}
+#map{position:absolute;inset:0}
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{flex:1;padding:10px 4px;background:none;border:none;color:var(--muted);font-size:.75rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.tc{display:none}.tc.on{display:block}
+/* ── SECTION ── */
+.sec{padding:14px;border-bottom:1px solid var(--border)}
+.sec-ttl{font-size:.68rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+/* ── INPUTS ── */
+.lbl{font-size:.72rem;color:var(--muted);margin-bottom:3px}
+input[type=text],input[type=number],select{width:100%;background:#090e18;border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 11px;font-size:.82rem;outline:none;transition:.2s}
+input:focus,select:focus{border-color:var(--gold)}
+select option{background:#111c2b}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ig{display:flex;gap:6px}
+.ig input{flex:1}
+/* ── BUTTONS ── */
+.btn{border-radius:6px;font-size:.82rem;font-weight:700;cursor:pointer;padding:8px 14px;transition:.2s;border:none}
+.btn-gold{background:linear-gradient(135deg,#e8b84b,#c9952a);color:#0d1520;width:100%}
+.btn-gold:hover{opacity:.88}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{padding:5px 9px;font-size:.75rem}
+.btn-red{background:none;border:1px solid #b33;color:#c44;padding:4px 8px;font-size:.72rem;border-radius:5px;cursor:pointer}
+.btn-red:hover{background:#c44;color:#fff}
+.btn-crosshair{padding:6px 10px}
+/* ── MODAL TRANSPORT ── */
+.modals-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mtbtn{background:#090e18;border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:11px 6px;font-size:.75rem;cursor:pointer;text-align:center;transition:.2s}
+.mtbtn i{font-size:1.1rem;display:block;margin-bottom:3px}
+.mtbtn:hover{border-color:var(--gold);color:var(--gold)}
+.mtbtn.on{background:rgba(232,184,75,.12);border-color:var(--gold);color:var(--gold)}
+/* ── SUGGESTIONS ── */
+.sug{position:absolute;z-index:9999;background:#111c2b;border:1px solid #2a4060;border-radius:6px;max-height:190px;overflow-y:auto;width:100%;top:calc(100% + 2px);left:0;display:none}
+.sug-item{padding:7px 12px;cursor:pointer;font-size:.8rem;border-bottom:1px solid var(--border)}
+.sug-item:hover{background:#1a2d45;color:var(--gold)}
+.sug-sub{font-size:.68rem;color:#556677}
+/* ── RESULTS ── */
+.rcard{background:#090e18;border:1px solid var(--border);border-radius:7px;padding:12px;margin-bottom:7px}
+.rcard.hl{border-color:var(--gold)}
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.8rem}
+.mrow:last-child{border:none}
+.mlbl{color:var(--muted)}
+.mval{font-weight:700}
+.mval.grn{color:#3c9}
+.mval.yel{color:#fa3}
+.mval.gld{color:var(--gold);font-size:.95rem}
+.section-sub{font-size:.68rem;color:var(--muted);margin-bottom:7px;font-weight:600;text-transform:uppercase}
+/* ── ALT ROUTES ── */
+.arc{background:#090e18;border:1px solid var(--border);border-radius:7px;margin-bottom:6px;cursor:pointer;transition:.2s;overflow:hidden}
+.arc:hover{border-color:#2a4060}
+.arch{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;background:rgba(255,255,255,.02)}
+.arcb{display:flex;justify-content:space-between;padding:6px 13px;font-size:.75rem;color:var(--muted)}
+/* ── MAP OVERLAY ── */
+.moverlay{position:absolute;top:10px;right:10px;z-index:900;display:flex;flex-direction:column;gap:7px}
+.mbtn{background:rgba(13,21,32,.9);border:1px solid #2a4060;color:var(--text);border-radius:6px;padding:7px 11px;font-size:.78rem;cursor:pointer;transition:.2s;white-space:nowrap;backdrop-filter:blur(4px)}
+.mbtn:hover{border-color:var(--gold);color:var(--gold)}
+.mbtn.on{background:var(--gold);color:#0d1520;border-color:var(--gold)}
+/* ── CLICK INDICATOR ── */
+#clickind{display:none;position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:900;background:var(--gold);color:#0d1520;padding:9px 22px;border-radius:20px;font-weight:700;font-size:.82rem;pointer-events:none}
+/* ── WP ITEM ── */
+.wpitem{display:flex;align-items:center;gap:7px;padding:7px 10px;background:#090e18;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:.8rem}
+.wpnum{width:22px;height:22px;border-radius:50%;background:#0d6efd;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0}
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9990;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.mbox{background:#111c2b;border:1px solid #2a4060;border-radius:10px;padding:22px;width:440px;max-width:95vw}
+.mbox-ttl{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+/* ── NOTIF ── */
+.notif{position:fixed;bottom:18px;right:18px;background:#111c2b;border:1px solid #2a4060;border-radius:8px;padding:11px 16px;font-size:.82rem;z-index:9999;max-width:280px;animation:sli .3s ease}
+.notif.ok{border-color:#3c9}
+.notif.err{border-color:#c44}
+@keyframes sli{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:36px 16px;color:#445566}
+.empty i{font-size:2.8rem;opacity:.25;display:block;margin-bottom:12px}
+/* ── DIVIDER ── */
+.div{height:1px;background:var(--border);margin:8px 0}
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:600}
+.badge-ok{background:rgba(51,204,153,.12);color:#3c9;border:1px solid rgba(51,204,153,.3)}
+/* ── CONTAINER CONSOLIDATION ── */
+.cnt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.cnt-card{background:#090e18;border:2px solid var(--border);border-radius:10px;padding:12px 10px;cursor:pointer;transition:.2s;text-align:center;position:relative}
+.cnt-card:hover{border-color:#2a4060;transform:translateY(-1px)}
+.cnt-card.on{border-color:var(--gold);background:rgba(232,184,75,.06)}
+.cnt-card.rec::after{content:'✓ Indicado';position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#3c9;color:#000;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.cnt-card.over-limit{border-color:#e55;opacity:.65}
+.cnt-type{font-size:.9rem;font-weight:800;letter-spacing:.5px;margin-bottom:2px}
+.cnt-dims{font-size:.62rem;color:var(--muted);margin-bottom:8px;line-height:1.6}
+.cnt-fill-wrap{margin-bottom:6px}
+.cnt-fill-bar{height:8px;background:#1e3050;border-radius:4px;overflow:hidden;margin-bottom:3px}
+.cnt-fill-inner{height:100%;border-radius:4px;transition:width .6s ease;min-width:2px}
+.fill-ok{background:linear-gradient(90deg,#27ae60,#2ecc71)}
+.fill-warn{background:linear-gradient(90deg,#f39c12,#e67e22)}
+.fill-over{background:linear-gradient(90deg,#c0392b,#e74c3c)}
+.cnt-pct{font-size:.75rem;font-weight:800}
+.cnt-pct.ok{color:#3c9}.cnt-pct.warn{color:#fa3}.cnt-pct.over{color:#e55}
+.cnt-icon{font-size:1.6rem;margin-bottom:4px;display:block}
+.cnt-cost{font-size:.82rem;font-weight:800;color:var(--gold);margin-top:6px}
+.cnt-cost-sub{font-size:.63rem;color:var(--muted)}
+/* op item */
+.op-item{display:flex;align-items:center;gap:5px;padding:7px 10px;background:#090e18;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;flex-wrap:nowrap}
+.op-desc{flex:2;min-width:0}
+.op-num{flex:1;min-width:0}
+.op-item input{background:#0a1220;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 6px;font-size:.73rem;width:100%;outline:none}
+.op-item input:focus{border-color:var(--gold)}
+.op-item .lbl-mini{font-size:.6rem;color:var(--muted);margin-bottom:2px}
+.freight-rates{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.cnt-detail-card{background:#090e18;border:1px solid var(--gold);border-radius:8px;padding:12px;margin-top:10px}
+.cnt-detail-title{font-size:.78rem;font-weight:700;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.loading-dots::after{content:'...';animation:dots 1.2s infinite}
+@keyframes dots{0%{content:'.'}33%{content:'..'}66%{content:'...'}}
+/* ── OPERATION REFERENCE ── */
+.op-ref-card{background:linear-gradient(135deg,#0d1e32,#0a1420);border:2px solid var(--gold);border-radius:10px;padding:13px;margin-bottom:0}
+.op-ref-num{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.op-ref-badge{background:var(--gold);color:#000;font-size:.75rem;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.op-ref-num input{flex:1;background:#090e18;border:1px solid rgba(232,184,75,.4);border-radius:6px;color:var(--gold);padding:6px 10px;font-size:.9rem;font-weight:700;letter-spacing:.5px}
+.op-ref-num input::placeholder{color:rgba(232,184,75,.3);font-weight:400}
+.op-ref-num input:focus{border-color:var(--gold);outline:none}
+/* ── CARGO ITEMS ── */
+.item-row{display:flex;align-items:center;gap:5px;padding:6px 10px;background:#090e18;border:1px solid var(--border);border-radius:6px;margin-bottom:5px}
+.item-row input,select{background:#0a1220;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 6px;font-size:.73rem;outline:none}
+.item-row input:focus{border-color:var(--gold)}
+.item-total{font-size:.7rem;font-weight:700;color:var(--gold);min-width:52px;text-align:right}
+.items-header{display:flex;font-size:.62rem;color:var(--muted);padding:0 10px;margin-bottom:3px;gap:5px}
+.items-sum{display:flex;justify-content:space-between;padding:7px 10px;background:rgba(232,184,75,.06);border:1px solid rgba(232,184,75,.2);border-radius:6px;font-size:.78rem;margin-top:6px}
+/* ── PORT TIERS (map legend) ── */
+.port-legend{position:absolute;bottom:36px;left:10px;z-index:900;background:rgba(13,21,32,.92);border:1px solid #2a4060;border-radius:7px;padding:9px 12px;font-size:.68rem;backdrop-filter:blur(4px)}
+.port-legend-title{color:var(--gold);font-weight:700;margin-bottom:6px;font-size:.7rem}
+.pl-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;color:var(--text)}
+.pl-dot{border-radius:50%;flex-shrink:0}
+/* ── SAVED ROUTES ── */
+.sroute-card{background:#090e18;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:7px;position:relative}
+.sroute-card:hover{border-color:#2a4060}
+.sroute-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.sroute-id{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#000;font-size:.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sroute-route{flex:1;font-size:.8rem;font-weight:700;line-height:1.4}
+.sroute-sub{font-size:.68rem;color:var(--muted)}
+.sroute-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:12px;font-size:.65rem;font-weight:600;background:#0f1923;border:1px solid var(--border)}
+.pill.grn{border-color:#3c9;color:#3c9}.pill.yel{border-color:#fa3;color:#fa3}.pill.gld{border-color:var(--gold);color:var(--gold)}
+.sroute-btn-row{display:flex;gap:6px;margin-top:6px}
+.sroute-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)}
+.sroute-check{width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;margin-top:3px}
+/* ── COST SUMMARY CARD ── */
+.cost-summary{background:linear-gradient(135deg,rgba(232,184,75,.08),rgba(232,184,75,.02));border:1px solid rgba(232,184,75,.3);border-radius:8px;padding:12px}
+.cost-summary-row{display:flex;justify-content:space-between;font-size:.8rem;padding:4px 0;border-bottom:1px solid rgba(232,184,75,.1)}
+.cost-summary-row:last-child{border:none;padding-top:8px;margin-top:2px}
+.cost-summary-row.total-row{font-size:.95rem;font-weight:800}
+/* ── CONTAINER TAB ── */
+.cnt-ops-section{background:#090e18;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+.cnt-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:10px}
+.cnt-tab{flex:1;padding:7px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:.75rem;font-weight:600;cursor:pointer;transition:.2s}
+.cnt-tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+.cnt-sub-panel{display:none}.cnt-sub-panel.on{display:block}
+.cnt-stats-bar{display:flex;gap:8px;margin-bottom:12px}
+.cnt-stat{flex:1;background:#090e18;border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center}
+.cnt-stat-val{font-size:1rem;font-weight:800;color:var(--gold)}
+.cnt-stat-lbl{font-size:.62rem;color:var(--muted);margin-top:2px}
+/* ── ZAP SUPPLIERS ── */
+.sup-card{background:#090e18;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;transition:.2s}
+.sup-card.active{border-color:var(--sup-color,var(--gold))}
+.sup-hdr{display:flex;align-items:center;gap:10px;padding:10px 13px;cursor:pointer}
+.sup-hdr:hover{background:rgba(255,255,255,.03)}
+.sup-dot{width:12px;height:12px;border-radius:50%;background:var(--sup-color,#888);flex-shrink:0;box-shadow:0 0 6px var(--sup-color,#888)}
+.sup-name{font-size:.82rem;font-weight:700;flex:1;line-height:1.3}
+.sup-oc{font-size:.68rem;color:var(--muted)}
+.sup-toggle{width:26px;height:26px;border-radius:50%;border:1px solid var(--sup-color,#888);background:none;cursor:pointer;color:var(--sup-color,#888);font-size:.7rem;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.sup-toggle.on{background:var(--sup-color,#888);color:#000}
+.sup-body{padding:0 13px 11px;display:none}
+.sup-body.show{display:block}
+.sup-row{display:flex;justify-content:space-between;font-size:.75rem;padding:4px 0;border-bottom:1px solid var(--border)}
+.sup-row:last-child{border:none}
+.sup-lbl{color:var(--muted)}
+.sup-val{font-weight:600}
+.port-dest-card{background:rgba(232,184,75,.08);border:1px solid var(--gold);border-radius:8px;padding:11px 13px;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.summary-table{width:100%;border-collapse:collapse;font-size:.75rem}
+.summary-table th{background:#0a1420;color:var(--gold);padding:6px 8px;text-align:left;font-weight:700;border-bottom:1px solid var(--border)}
+.summary-table td{padding:5px 8px;border-bottom:1px solid var(--border)}
+.summary-table tr:hover td{background:rgba(255,255,255,.03)}
+.color-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+/* ── PRINT ── */
+@media print{
+  #hdr{background:#fff!important;color:#000!important;border-bottom:2px solid #333}
+  #mapwrap{display:none}
+  #app{display:block}
+  #sidebar{width:100%;overflow:visible}
+  #sidebar-body{overflow:visible}
+  .tabs,.btn-gold,.btn-ghost,.moverlay{display:none!important}
+  .tc{display:block!important}
+  body{background:#fff!important;color:#000!important}
+  .rcard{border:1px solid #ccc!important;background:#f9f9f9!important}
+  .mlbl,.muted{color:#333!important}
+}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div class="logo"><i class="fas fa-ship"></i></div>
+  <div><h1>Cotação de Importação — China</h1><p>Calculadora de rotas e custos logísticos internos</p></div>
+  <div id="sidebarResize">
+    <label class="resize-label">Painel:</label>
+    <input type="range" min="250" max="600" value="360" oninput="resizeSidebar(this.value)">
+    <span class="resize-label" id="sidebarWidthLabel">360px</span>
+  </div>
+  <div class="hdr-actions">
+    <span class="badge badge-ok"><i class="fas fa-circle" style="font-size:.45rem"></i> Online</span>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('cfgModal')"><i class="fas fa-cog"></i> Config</button>
+    <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Exportar</button>
+  </div>
+</div>
+
+<div id="app">
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="tabs" style="flex-wrap:nowrap">
+    <button class="tab on" onclick="tab('rota',this)" style="font-size:.68rem"><i class="fas fa-route"></i> Rota</button>
+    <button class="tab" onclick="tab('custo',this)" style="font-size:.68rem"><i class="fas fa-dollar-sign"></i> Custos</button>
+    <button class="tab" onclick="tab('res',this)" style="font-size:.68rem"><i class="fas fa-list-alt"></i> Resultado</button>
+    <button class="tab" onclick="tab('cnt',this)" style="font-size:.68rem"><i class="fas fa-cube"></i> Container</button>
+    <button class="tab" onclick="tab('zap',this);initZAP()" style="font-size:.68rem"><i class="fas fa-building"></i> ZAP</button>
+  </div>
+  <div id="sidebar-body">
+
+    <!-- TAB ROTA -->
+    <div id="tc-rota" class="tc on">
+
+      <!-- CSV IMPORT -->
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-file-csv" style="color:var(--gold)"></i> Importar de CSV</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="file" id="csvFile" accept=".csv" style="flex:1;padding:7px 11px;background:#090e18;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.82rem;cursor:pointer">
+          <button class="btn btn-gold" style="padding:7px 14px;white-space:nowrap" onclick="importCSV()"><i class="fas fa-upload"></i> Importar</button>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;font-size:.72rem;margin-bottom:8px" onclick="toggleCSVDebug()"><i class="fas fa-bug"></i> Ver Estrutura do CSV</button>
+        <div id="csvDebug" style="display:none;background:#0a0e18;border:1px solid #2a4060;border-radius:6px;padding:8px;margin-bottom:10px;max-height:300px;overflow:auto;font-size:.65rem;font-family:monospace;color:#aaa"></div>
+        <div id="csvStatus" style="font-size:.7rem;color:var(--muted);display:none"></div>
+        <div id="supplierNav" style="display:none;margin-top:10px;padding:8px 10px;background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.2);border-radius:6px">
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px">
+            Fornecedor <span id="currentSupplier">1</span> de <span id="totalSuppliers">5</span>: <span id="supplierName">—</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="flex:1;font-size:.75rem;padding:6px 10px" id="prevSupBtn" onclick="navigateSupplier(-1)" style="display:none"><i class="fas fa-chevron-left"></i> Anterior</button>
+            <button class="btn btn-ghost" style="flex:1;font-size:.75rem;padding:6px 10px" id="nextSupBtn" onclick="navigateSupplier(1)"><i class="fas fa-chevron-right"></i> Próximo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- REFERÊNCIA DA OPERAÇÃO -->
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-tag" style="color:var(--gold)"></i> Referência da Operação</div>
+        <div class="op-ref-card">
+          <div class="op-ref-num">
+            <span class="op-ref-badge"><i class="fas fa-hashtag"></i> REF</span>
+            <input type="text" id="opRef" placeholder="OC 2576 · PI #123 · PO-2024…" oninput="updateOpRef()">
+          </div>
+          <div>
+            <div class="lbl">Descrição da Operação</div>
+            <input type="text" id="opDesc" placeholder="Ex: Maquinário industrial — Fornecedor Foshan…"
+              style="width:100%;background:#090e18;border:1px solid #2a4060;border-radius:6px;color:var(--text);padding:6px 10px;font-size:.8rem"
+              oninput="updateOpRef()">
+          </div>
+          <div>
+            <div class="lbl"><i class="fas fa-receipt" style="color:#e8b84b;margin-right:6px"></i>Ordem de Compra (OC)</div>
+            <div style="display:flex;gap:8px">
+              <select id="opOC" style="flex:1;background:#090e18;border:1px solid #2a4060;border-radius:6px;color:var(--text);padding:6px 10px;font-size:.8rem" oninput="updateOpRef()">
+                <option value="">— Selecione ou Digite —</option>
+              </select>
+              <input type="text" id="opOCCustom" placeholder="Digite OC manualmente…"
+                style="flex:1;background:#090e18;border:1px solid #2a4060;border-radius:6px;color:var(--text);padding:6px 10px;font-size:.8rem"
+                oninput="updateOpRef()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-map-marker-alt" style="color:#3c9"></i> Origem</div>
+        <div class="lbl">Cidade / Local de Origem</div>
+        <div class="ig" style="position:relative">
+          <div style="position:relative;flex:1">
+            <input type="text" id="oriIn" placeholder="Ex: Shenzhen, Yiwu, Guangzhou…"
+              oninput="suggest(this,'oriSug','origin')" autocomplete="off">
+            <div id="oriSug" class="sug"></div>
+          </div>
+          <button class="btn btn-ghost btn-crosshair" id="oriBtnMap" title="Clique no mapa" onclick="clickMode('origin')">
+            <i class="fas fa-crosshairs"></i>
+          </button>
+        </div>
+        <div style="height:7px"></div>
+        <div class="lbl">Tipo de Local</div>
+        <select id="oriType">
+          <option value="factory">🏭 Fábrica / Fornecedor</option>
+          <option value="warehouse">🏪 Armazém / CD</option>
+          <option value="port">⚓ Porto Marítimo</option>
+          <option value="airport">✈️ Aeroporto</option>
+          <option value="freezone">🏗️ Zona Franca / SEZ</option>
+        </select>
+      </div>
+
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-flag-checkered" style="color:#e55"></i> Destino</div>
+        <div class="lbl">Porto / Destino Final</div>
+        <div class="ig">
+          <div style="position:relative;flex:1">
+            <input type="text" id="dstIn" placeholder="Ex: Shanghai, Ningbo, Tianjin…"
+              oninput="suggest(this,'dstSug','dest')" autocomplete="off">
+            <div id="dstSug" class="sug"></div>
+          </div>
+          <button class="btn btn-ghost btn-crosshair" id="dstBtnMap" title="Clique no mapa" onclick="clickMode('dest')">
+            <i class="fas fa-crosshairs"></i>
+          </button>
+        </div>
+        <div style="height:7px"></div>
+        <div class="lbl">Tipo de Local</div>
+        <select id="dstType">
+          <option value="port">⚓ Porto Marítimo</option>
+          <option value="airport">✈️ Aeroporto</option>
+          <option value="warehouse">🏪 Armazém / CD</option>
+          <option value="factory">🏭 Fábrica</option>
+          <option value="freezone">🏗️ Zona Franca / SEZ</option>
+        </select>
+      </div>
+
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-map-pin" style="color:#48f"></i> Paradas Intermediárias</div>
+        <div id="wpList"></div>
+        <button class="btn btn-ghost" style="width:100%;font-size:.78rem" onclick="addWP()">
+          <i class="fas fa-plus"></i> Adicionar Parada
+        </button>
+      </div>
+
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-truck" style="color:#48f"></i> Modal de Transporte</div>
+        <div class="modals-grid">
+          <button class="mtbtn on" data-m="road" onclick="selModal(this,'road')"><i class="fas fa-truck"></i>Rodoviário</button>
+          <button class="mtbtn" data-m="rail" onclick="selModal(this,'rail')"><i class="fas fa-train"></i>Ferroviário</button>
+          <button class="mtbtn" data-m="river" onclick="selModal(this,'river')"><i class="fas fa-water"></i>Fluvial</button>
+          <button class="mtbtn" data-m="air" onclick="selModal(this,'air')"><i class="fas fa-plane"></i>Aéreo</button>
+        </div>
+      </div>
+
+      <!-- ITENS DA CARGA -->
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-boxes" style="color:#4ecdc4"></i> Itens da Carga
+          <span id="itemCountBadge" style="margin-left:auto;font-size:.65rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0"></span>
+        </div>
+        <div class="items-header">
+          <span style="flex:3">Produto / Descrição</span>
+          <span style="flex:1;text-align:center">Qtd</span>
+          <span style="flex:1;text-align:center">UN</span>
+          <span style="flex:1;text-align:right">USD Unit</span>
+          <span style="flex:1;text-align:right">Total</span>
+          <span style="width:22px"></span>
+        </div>
+        <div id="itemList"></div>
+        <button class="btn btn-ghost" style="width:100%;font-size:.76rem;margin-bottom:8px" onclick="addItem()">
+          <i class="fas fa-plus"></i> Adicionar Item
+        </button>
+        <div id="itemsSum" style="display:none" class="items-sum">
+          <span style="color:var(--muted)"><i class="fas fa-boxes"></i> <span id="sumQty">—</span> itens</span>
+          <span style="color:var(--gold);font-weight:700">Total USD: <span id="sumUSD">—</span></span>
+        </div>
+      </div>
+
+      <div class="sec">
+        <button class="btn btn-gold" onclick="calc()"><i class="fas fa-calculator"></i> Calcular Rota e Cotação</button>
+      </div>
+    </div>
+
+    <!-- TAB CUSTOS -->
+    <div id="tc-custo" class="tc">
+
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-box" style="color:var(--gold)"></i> Dados da Carga</div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><div class="lbl">Peso Total (KG)</div><input type="number" id="cWeight" value="1000" min="1"></div>
+          <div><div class="lbl">Volume (m³)</div><input type="number" id="cVol" value="5" min="0.1" step="0.1"></div>
+        </div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><div class="lbl">Qtd. Containers</div><input type="number" id="cQty" value="1" min="1"></div>
+          <div>
+            <div class="lbl">Tipo Container</div>
+            <select id="cType">
+              <option value="20gp">20' GP</option>
+              <option value="40gp" selected>40' GP</option>
+              <option value="40hc">40' HC</option>
+              <option value="lcl">LCL (Carga Solta)</option>
+            </select>
+          </div>
+        </div>
+        <div class="lbl">Tipo de Mercadoria</div>
+        <select id="cGood">
+          <option value="general">Carga Geral</option>
+          <option value="electronics">Eletrônicos / TI</option>
+          <option value="textile">Têxtil / Moda</option>
+          <option value="machinery">Máquinas / Equipamentos</option>
+          <option value="chemicals">Químicos / DG</option>
+          <option value="food">Alimentos / Perecíveis</option>
+          <option value="automotive">Autopeças</option>
+          <option value="furniture">Móveis / Decoração</option>
+        </select>
+      </div>
+
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-coins" style="color:var(--gold)"></i> Câmbio e Tarifas Base</div>
+        <div style="margin-bottom:8px">
+          <div class="lbl">Moeda de Exibição</div>
+          <select id="curr">
+            <option value="BRL">BRL — Real Brasileiro</option>
+            <option value="USD">USD — Dólar Americano</option>
+            <option value="CNY">CNY — Yuan Chinês</option>
+            <option value="EUR">EUR — Euro</option>
+          </select>
+        </div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><div class="lbl">USD → BRL</div><input type="number" id="usdBrl" value="5.05" step="0.01" min="1"></div>
+          <div><div class="lbl">CNY → BRL</div><input type="number" id="cnyBrl" value="0.70" step="0.01" min="0.1"></div>
+        </div>
+        <div class="div"></div>
+        <div class="lbl" style="margin-bottom:6px">Tarifas por Km (USD)</div>
+        <div class="row2" style="margin-bottom:6px">
+          <div><div class="lbl">🚛 Rodovia</div><input type="number" id="rRoad" value="0.08" step="0.01" min="0"></div>
+          <div><div class="lbl">🚂 Ferrovia</div><input type="number" id="rRail" value="0.05" step="0.01" min="0"></div>
+        </div>
+        <div class="row2">
+          <div><div class="lbl">⛵ Fluvial</div><input type="number" id="rRiver" value="0.03" step="0.01" min="0"></div>
+          <div><div class="lbl">✈️ Aéreo</div><input type="number" id="rAir" value="0.45" step="0.01" min="0"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-anchor" style="color:var(--gold)"></i> Taxas Portuárias (USD)</div>
+        <div class="row2">
+          <div><div class="lbl">THC Origem</div><input type="number" id="fThc" value="120" step="10" min="0"></div>
+          <div><div class="lbl">Doc Fee</div><input type="number" id="fDoc" value="55" step="5" min="0"></div>
+          <div><div class="lbl">Seal Fee</div><input type="number" id="fSeal" value="15" step="5" min="0"></div>
+          <div><div class="lbl">Port Surcharge %</div><input type="number" id="fPct" value="3" step="0.5" min="0"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-file-alt" style="color:var(--gold)"></i> Despachante / Aduaneiro (USD)</div>
+        <div class="row2">
+          <div><div class="lbl">Despachante</div><input type="number" id="fBrk" value="200" step="10" min="0"></div>
+          <div><div class="lbl">Cert. Origem</div><input type="number" id="fCert" value="40" step="5" min="0"></div>
+          <div><div class="lbl">Inspeção</div><input type="number" id="fInsp" value="80" step="10" min="0"></div>
+          <div><div class="lbl">Outros</div><input type="number" id="fOther" value="50" step="10" min="0"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <button class="btn btn-gold" onclick="calc()"><i class="fas fa-sync-alt"></i> Recalcular</button>
+      </div>
+    </div>
+
+    <!-- TAB RESULTADO -->
+    <div id="tc-res" class="tc">
+      <div id="resEmpty" class="empty"><i class="fas fa-route"></i>Configure a rota e clique em Calcular para ver os resultados</div>
+      <div id="resContent" style="display:none">
+
+        <!-- Rota atual -->
+        <div class="sec">
+          <div class="sec-ttl"><i class="fas fa-route"></i> Rota Calculada</div>
+          <div class="rcard hl" style="margin-bottom:8px">
+            <div class="mrow"><span class="mlbl"><i class="fas fa-dot-circle" style="color:#3c9"></i> Origem</span><span class="mval" id="rOri" style="text-align:right;max-width:60%">—</span></div>
+            <div class="mrow"><span class="mlbl"><i class="fas fa-flag" style="color:#e55"></i> Destino</span><span class="mval" id="rDst" style="text-align:right;max-width:60%">—</span></div>
+            <div class="mrow"><span class="mlbl"><i class="fas fa-road"></i> Distância</span><span class="mval grn" id="rDist">—</span></div>
+            <div class="mrow"><span class="mlbl"><i class="fas fa-truck"></i> Modal</span><span class="mval" id="rMod">—</span></div>
+            <div class="mrow"><span class="mlbl"><i class="fas fa-clock"></i> Tempo Est.</span><span class="mval yel" id="rTime">—</span></div>
+          </div>
+          <!-- Cost summary -->
+          <div class="cost-summary">
+            <div class="cost-summary-row"><span style="color:var(--muted)">Frete interno (China)</span><span id="cs_frete">—</span></div>
+            <div class="cost-summary-row"><span style="color:var(--muted)">Taxas portuárias</span><span id="cs_port">—</span></div>
+            <div class="cost-summary-row"><span style="color:var(--muted)">Despachante / Docs</span><span id="cs_broker">—</span></div>
+            <div class="cost-summary-row total-row"><span>TOTAL</span><span class="mval gld" id="cs_total">—</span></div>
+            <div class="cost-summary-row" style="padding-top:4px"><span style="color:var(--muted)">Por KG</span><span id="cs_kg">—</span></div>
+            <div class="cost-summary-row"><span style="color:var(--muted)">Por m³</span><span id="cs_cbm">—</span></div>
+          </div>
+        </div>
+
+        <!-- Alternativas compactas -->
+        <div class="sec">
+          <div class="sec-ttl"><i class="fas fa-code-branch"></i> Rotas Alternativas</div>
+          <div id="altRoutes"></div>
+        </div>
+
+        <!-- Adicionar à consolidação -->
+        <div class="sec">
+          <div class="sec-ttl"><i class="fas fa-cube" style="color:var(--gold)"></i> Consolidação</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div><div class="lbl">Volume m³</div><input type="number" id="res_vol" value="5" min="0.1" step="0.5"></div>
+            <div><div class="lbl">Peso KG</div><input type="number" id="res_kg" value="1000" min="1" step="100"></div>
+          </div>
+          <button class="btn btn-gold" onclick="addRouteToConsolidation()">
+            <i class="fas fa-plus-circle"></i> Adicionar à Consolidação de Container
+          </button>
+        </div>
+
+        <!-- Rotas salvas -->
+        <div class="sec" id="savedRoutesSection" style="display:none">
+          <div class="sec-ttl">
+            <i class="fas fa-layer-group" style="color:#4ecdc4"></i> Rotas na Consolidação
+            <span class="pill gld" id="savedCount" style="margin-left:auto">0</span>
+          </div>
+          <div id="savedRoutesList"></div>
+          <div style="display:flex;gap:7px;margin-top:8px">
+            <button class="btn btn-gold" style="flex:1;font-size:.78rem" onclick="tab('cnt',document.querySelectorAll('.tab')[3])">
+              <i class="fas fa-cube"></i> Ir para Container
+            </button>
+            <button class="btn btn-ghost" style="font-size:.78rem" onclick="clearSaved()"><i class="fas fa-trash-alt"></i></button>
+          </div>
+          <!-- Export options -->
+          <div style="display:flex;gap:7px;margin-top:8px">
+            <button class="btn btn-gold" style="flex:1;font-size:.75rem" onclick="exportOperationJSON()"><i class="fas fa-file-json"></i> JSON</button>
+            <button class="btn btn-gold" style="flex:1;font-size:.75rem" onclick="generateOperationPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="row2">
+            <button class="btn btn-gold" onclick="saveQuote()"><i class="fas fa-save"></i> Salvar</button>
+            <button class="btn btn-ghost" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB CONTAINER -->
+    <div id="tc-cnt" class="tc">
+
+      <!-- Header stats -->
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-cube" style="color:var(--gold)"></i> Consolidação de Container <span style="margin-left:auto;font-size:.65rem;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">FCL Marítimo</span></div>
+        <div class="cnt-stats-bar">
+          <div class="cnt-stat"><div class="cnt-stat-val" id="ct_vol">—</div><div class="cnt-stat-lbl">m³ Total</div></div>
+          <div class="cnt-stat"><div class="cnt-stat-val" style="color:#4ecdc4" id="ct_kg">—</div><div class="cnt-stat-lbl">KG Total</div></div>
+          <div class="cnt-stat"><div class="cnt-stat-val" style="color:#a29bfe" id="ct_ops">0</div><div class="cnt-stat-lbl">Operações</div></div>
+        </div>
+      </div>
+
+      <!-- Operações -->
+      <div class="sec">
+        <div class="cnt-tabs">
+          <button class="cnt-tab on" onclick="cntSubTab('rotas',this)"><i class="fas fa-route"></i> Do Resultado</button>
+          <button class="cnt-tab" onclick="cntSubTab('manual',this)"><i class="fas fa-edit"></i> Manual</button>
+          <button class="cnt-tab" onclick="cntSubTab('zap',this)"><i class="fas fa-building"></i> ZAP</button>
+        </div>
+
+        <!-- Sub: rotas salvas -->
+        <div id="csp-rotas" class="cnt-sub-panel on">
+          <div id="cntRoutesList">
+            <div class="empty" style="padding:20px 0"><i class="fas fa-route" style="font-size:1.8rem;opacity:.2"></i>Nenhuma rota adicionada.<br><small>Calcule uma rota e use "Adicionar à Consolidação"</small></div>
+          </div>
+          <button class="btn btn-ghost" style="width:100%;font-size:.75rem;margin-top:6px" onclick="tab('res',document.querySelectorAll('.tab')[2])">
+            <i class="fas fa-arrow-left"></i> Voltar ao Resultado para adicionar rotas
+          </button>
+        </div>
+
+        <!-- Sub: manual -->
+        <div id="csp-manual" class="cnt-sub-panel">
+          <div id="manualOpList"></div>
+          <div style="display:flex;gap:7px">
+            <button class="btn btn-ghost" style="flex:1;font-size:.76rem" onclick="addManualOp()"><i class="fas fa-plus"></i> Adicionar Item</button>
+            <button class="btn btn-ghost" style="font-size:.76rem;padding:7px 10px" onclick="clearManualOps()"><i class="fas fa-trash-alt"></i></button>
+          </div>
+        </div>
+
+        <!-- Sub: ZAP -->
+        <div id="csp-zap" class="cnt-sub-panel">
+          <div style="margin-bottom:8px;font-size:.75rem;color:var(--muted)">Selecione os fornecedores ZAP para incluir na consolidação:</div>
+          <div id="zapCheckList"></div>
+          <button class="btn btn-ghost" style="width:100%;font-size:.76rem;margin-top:6px" onclick="loadZAPChecks()"><i class="fas fa-sync-alt"></i> Carregar Fornecedores ZAP</button>
+        </div>
+      </div>
+
+      <!-- Porto de Embarque -->
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-anchor" style="color:var(--gold)"></i> Porto de Embarque</div>
+        <div class="lbl">Selecione o porto para comparar custos</div>
+        <select id="embarquePort" onchange="changeEmbarquePort(this.value)" style="width:100%;margin-bottom:8px">
+          <option value="Shanghai">🌍 Shanghai (Maior porto mundial)</option>
+          <option value="Shenzhen / Yantian">🌊 Shenzhen / Yantian (Hub Sul)</option>
+          <option value="Guangzhou / Nansha" selected>⚓ Guangzhou / Nansha (Padrão)</option>
+          <option value="Ningbo-Zhoushan">📍 Ningbo-Zhoushan (2º maior)</option>
+          <option value="Tianjin">🚢 Tianjin (Norte)</option>
+          <option value="Qingdao">⛴️ Qingdao (Shandong)</option>
+          <option value="Xiamen">🏝️ Xiamen (Economia)</option>
+          <option value="Dalian">🌐 Dalian (Nordeste)</option>
+        </select>
+        <div id="portInfo" style="padding:8px 10px;background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.3);border-radius:6px;font-size:.75rem;color:var(--muted)">
+          <span id="portRank"></span>
+        </div>
+      </div>
+
+      <!-- Tarifas de frete marítimo -->
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-ship" style="color:var(--gold)"></i> Frete Marítimo (USD / container)</div>
+        <div class="freight-rates">
+          <div><div class="lbl">20' GP</div><input type="number" id="f20gp" value="950" min="0" step="50" oninput="refreshCntStats()"></div>
+          <div><div class="lbl">40' GP</div><input type="number" id="f40gp" value="1400" min="0" step="50" oninput="refreshCntStats()"></div>
+          <div><div class="lbl">40' HC</div><input type="number" id="f40hc" value="1550" min="0" step="50" oninput="refreshCntStats()"></div>
+          <div><div class="lbl">45' HC</div><input type="number" id="f45hc" value="1750" min="0" step="50" oninput="refreshCntStats()"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <button class="btn btn-gold" onclick="calcContainers()"><i class="fas fa-calculator"></i> Calcular Containers</button>
+      </div>
+
+      <!-- Container cards -->
+      <div class="sec" id="cntGrid" style="display:none">
+        <div class="sec-ttl"><i class="fas fa-th-large"></i> Comparativo de Containers</div>
+        <div class="cnt-grid">
+          <div class="cnt-card" id="cntCard_20gp" onclick="selectCnt('20gp')">
+            <span class="cnt-icon">📦</span>
+            <div class="cnt-type">20' GP</div>
+            <div class="cnt-dims">33,2 m³ · 28.180 kg<br>5,9 × 2,35 × 2,39m</div>
+            <div class="cnt-fill-wrap"><div class="cnt-fill-bar"><div id="fill_20gp" class="cnt-fill-inner fill-ok" style="width:0%"></div></div><div class="cnt-pct ok" id="pct_20gp">—</div></div>
+            <div class="cnt-cost" id="cost_20gp">—</div>
+            <div class="cnt-cost-sub" id="costsub_20gp"></div>
+          </div>
+          <div class="cnt-card" id="cntCard_40gp" onclick="selectCnt('40gp')">
+            <span class="cnt-icon">🚢</span>
+            <div class="cnt-type">40' GP</div>
+            <div class="cnt-dims">67,7 m³ · 26.750 kg<br>12,0 × 2,35 × 2,39m</div>
+            <div class="cnt-fill-wrap"><div class="cnt-fill-bar"><div id="fill_40gp" class="cnt-fill-inner fill-ok" style="width:0%"></div></div><div class="cnt-pct ok" id="pct_40gp">—</div></div>
+            <div class="cnt-cost" id="cost_40gp">—</div>
+            <div class="cnt-cost-sub" id="costsub_40gp"></div>
+          </div>
+          <div class="cnt-card" id="cntCard_40hc" onclick="selectCnt('40hc')">
+            <span class="cnt-icon">🏗️</span>
+            <div class="cnt-type">40' HC</div>
+            <div class="cnt-dims">76,3 m³ · 26.460 kg<br>12,0 × 2,35 × 2,70m</div>
+            <div class="cnt-fill-wrap"><div class="cnt-fill-bar"><div id="fill_40hc" class="cnt-fill-inner fill-ok" style="width:0%"></div></div><div class="cnt-pct ok" id="pct_40hc">—</div></div>
+            <div class="cnt-cost" id="cost_40hc">—</div>
+            <div class="cnt-cost-sub" id="costsub_40hc"></div>
+          </div>
+          <div class="cnt-card" id="cntCard_45hc" onclick="selectCnt('45hc')">
+            <span class="cnt-icon">⛴️</span>
+            <div class="cnt-type">45' HC</div>
+            <div class="cnt-dims">86,1 m³ · 27.600 kg<br>13,6 × 2,35 × 2,70m</div>
+            <div class="cnt-fill-wrap"><div class="cnt-fill-bar"><div id="fill_45hc" class="cnt-fill-inner fill-ok" style="width:0%"></div></div><div class="cnt-pct ok" id="pct_45hc">—</div></div>
+            <div class="cnt-cost" id="cost_45hc">—</div>
+            <div class="cnt-cost-sub" id="costsub_45hc"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail -->
+      <div class="sec" id="cntDetailSec" style="display:none">
+        <div class="cnt-detail-card" id="cntDetail">
+          <div class="cnt-detail-title"><i class="fas fa-info-circle"></i> <span id="cntDetailName">—</span></div>
+          <div class="mrow"><span class="mlbl">Frete Marítimo</span><span class="mval" id="cdFreight">—</span></div>
+          <div class="mrow"><span class="mlbl">THC + Doc + Seal</span><span class="mval" id="cdPort">—</span></div>
+          <div class="mrow"><span class="mlbl">Frete Interno (China)</span><span class="mval" id="cdInternal">—</span></div>
+          <div class="mrow"><span class="mlbl">Despachante / Docs</span><span class="mval" id="cdBroker">—</span></div>
+          <div class="mrow" style="border-top:1px solid rgba(232,184,75,.4);padding-top:8px;margin-top:4px">
+            <span class="mlbl" style="font-weight:700;color:var(--text)">CUSTO TOTAL ESTIMADO</span>
+            <span class="mval gld" id="cdTotal">—</span>
+          </div>
+          <div class="mrow"><span class="mlbl">Custo / m³</span><span class="mval" id="cdPerCbm">—</span></div>
+          <div class="mrow"><span class="mlbl">Custo / KG</span><span class="mval" id="cdPerKg">—</span></div>
+          <div class="mrow"><span class="mlbl">Espaço livre</span><span class="mval grn" id="cdFree">—</span></div>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:8px">
+          <button class="btn btn-gold" style="flex:1" onclick="generateOperationPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+          <button class="btn btn-gold" style="flex:1" onclick="exportOperationJSON()"><i class="fas fa-file-json"></i> JSON</button>
+          <button class="btn btn-ghost" style="flex:1" onclick="saveConsolidationToHistory()"><i class="fas fa-history"></i> Histórico</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB ZAP - HISTÓRICO -->
+    <div id="tc-zap" class="tc">
+
+      <div class="sec">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="background:linear-gradient(135deg,#4ecdc4,#1a8a7a);border-radius:8px;padding:7px 14px;font-weight:800;font-size:1.1rem;color:#fff;letter-spacing:1px"><i class="fas fa-history"></i> HISTÓRICO</div>
+          <div>
+            <div style="font-size:.82rem;font-weight:700">Consolidações Cotadas</div>
+            <div style="font-size:.7rem;color:var(--muted)">Histórico de cotações e containers selecionados</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-gold" style="flex:1;font-size:.78rem" onclick="saveConsolidationToHistory()"><i class="fas fa-save"></i> Salvar Atual</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:.78rem" onclick="clearAllHistory()"><i class="fas fa-trash"></i> Limpar Tudo</button>
+        </div>
+      </div>
+
+      <!-- Histórico Lista -->
+      <div id="historyList" style="padding:0 14px;margin-bottom:14px"></div>
+
+    </div><!-- /tc-zap -->
+
+    <!-- ARQUIVADO: Antigos fornecedores ZAP (S1-S5) - Removido -->
+    <div style="display:none;">
+        <div class="sup-card" id="sc0" style="--sup-color:#ff6b6b">
+          <div class="sup-hdr" onclick="toggleSupBody(0)">
+            <div class="sup-dot"></div>
+            <div style="flex:1">
+              <div class="sup-name">Foshan Dechang Technology</div>
+              <div class="sup-oc">OC 2576 · OC 2579 · Foshan, Guangdong</div>
+            </div>
+            <button class="sup-toggle" id="st0" onclick="event.stopPropagation();toggleSupRoute(0)" title="Ver rota"><i class="fas fa-eye"></i></button>
+          </div>
+          <div class="sup-body" id="sb0">
+            <div class="sup-row"><span class="sup-lbl">Contato</span><span class="sup-val">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Incoterm</span><span class="sup-val">EXW</span></div>
+            <div class="sup-row"><span class="sup-lbl">Endereço</span><span class="sup-val" style="text-align:right;max-width:65%">Danzao Town, Foshan City, GuangDong</span></div>
+            <div class="sup-row"><span class="sup-lbl">Distância</span><span class="sup-val" id="sd0">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Tempo Est.</span><span class="sup-val" id="st0t">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Custo Frete</span><span class="sup-val" id="sc0c">—</span></div>
+          </div>
+        </div>
+
+        <!-- S2 -->
+        <div class="sup-card" id="sc1" style="--sup-color:#4ecdc4">
+          <div class="sup-hdr" onclick="toggleSupBody(1)">
+            <div class="sup-dot"></div>
+            <div style="flex:1">
+              <div class="sup-name">Hangzhou Insight</div>
+              <div class="sup-oc">OC 37578 · Huzhou, Zhejiang</div>
+            </div>
+            <button class="sup-toggle" id="st1" onclick="event.stopPropagation();toggleSupRoute(1)" title="Ver rota"><i class="fas fa-eye"></i></button>
+          </div>
+          <div class="sup-body" id="sb1">
+            <div class="sup-row"><span class="sup-lbl">Contato</span><span class="sup-val">Sarah</span></div>
+            <div class="sup-row"><span class="sup-lbl">Incoterm</span><span class="sup-val">EXW</span></div>
+            <div class="sup-row"><span class="sup-lbl">Endereço</span><span class="sup-val" style="text-align:right;max-width:65%">Shuanglin Ind. Park, Deqing, Huzhou, Zhejiang</span></div>
+            <div class="sup-row"><span class="sup-lbl">Distância</span><span class="sup-val" id="sd1">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Tempo Est.</span><span class="sup-val" id="st1t">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Custo Frete</span><span class="sup-val" id="sc1c">—</span></div>
+          </div>
+        </div>
+
+        <!-- S3 -->
+        <div class="sup-card" id="sc2" style="--sup-color:#ffd93d">
+          <div class="sup-hdr" onclick="toggleSupBody(2)">
+            <div class="sup-dot"></div>
+            <div style="flex:1">
+              <div class="sup-name">Wenzhou Weigang International</div>
+              <div class="sup-oc">OC 2441 · Wenzhou, Zhejiang</div>
+            </div>
+            <button class="sup-toggle" id="st2" onclick="event.stopPropagation();toggleSupRoute(2)" title="Ver rota"><i class="fas fa-eye"></i></button>
+          </div>
+          <div class="sup-body" id="sb2">
+            <div class="sup-row"><span class="sup-lbl">Contato</span><span class="sup-val">Jean</span></div>
+            <div class="sup-row"><span class="sup-lbl">Incoterm</span><span class="sup-val">EXW</span></div>
+            <div class="sup-row"><span class="sup-lbl">Endereço</span><span class="sup-val" style="text-align:right;max-width:65%">Wanquan Industrial Zone, Pingyang, Wenzhou</span></div>
+            <div class="sup-row"><span class="sup-lbl">Distância</span><span class="sup-val" id="sd2">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Tempo Est.</span><span class="sup-val" id="st2t">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Custo Frete</span><span class="sup-val" id="sc2c">—</span></div>
+          </div>
+        </div>
+
+        <!-- S4 -->
+        <div class="sup-card" id="sc3" style="--sup-color:#a29bfe">
+          <div class="sup-hdr" onclick="toggleSupBody(3)">
+            <div class="sup-dot"></div>
+            <div style="flex:1">
+              <div class="sup-name">Shandong Xinst Laser Equipment</div>
+              <div class="sup-oc">OC 2578 · OC 2709 · Liaocheng, Shandong</div>
+            </div>
+            <button class="sup-toggle" id="st3" onclick="event.stopPropagation();toggleSupRoute(3)" title="Ver rota"><i class="fas fa-eye"></i></button>
+          </div>
+          <div class="sup-body" id="sb3">
+            <div class="sup-row"><span class="sup-lbl">Contato</span><span class="sup-val">Xinster Laser</span></div>
+            <div class="sup-row"><span class="sup-lbl">Incoterm</span><span class="sup-val">EXW</span></div>
+            <div class="sup-row"><span class="sup-lbl">Endereço</span><span class="sup-val" style="text-align:right;max-width:65%">Dongchangfu District, Liaocheng, Shandong</span></div>
+            <div class="sup-row"><span class="sup-lbl">Distância</span><span class="sup-val" id="sd3">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Tempo Est.</span><span class="sup-val" id="st3t">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Custo Frete</span><span class="sup-val" id="sc3c">—</span></div>
+          </div>
+        </div>
+
+        <!-- S5 -->
+        <div class="sup-card" id="sc4" style="--sup-color:#fd79a8">
+          <div class="sup-hdr" onclick="toggleSupBody(4)">
+            <div class="sup-dot"></div>
+            <div style="flex:1">
+              <div class="sup-name">Kingpack Machinery</div>
+              <div class="sup-oc">OC 37800 · OC 37801 · Dongguan, Guangdong</div>
+            </div>
+            <button class="sup-toggle" id="st4" onclick="event.stopPropagation();toggleSupRoute(4)" title="Ver rota"><i class="fas fa-eye"></i></button>
+          </div>
+          <div class="sup-body" id="sb4">
+            <div class="sup-row"><span class="sup-lbl">Contato</span><span class="sup-val">Lucky</span></div>
+            <div class="sup-row"><span class="sup-lbl">Incoterm</span><span class="sup-val">EXW</span></div>
+            <div class="sup-row"><span class="sup-lbl">Endereço</span><span class="sup-val" style="text-align:right;max-width:65%">Chigang Fuma Er Road, Humen, Dongguan, Guangdong</span></div>
+            <div class="sup-row"><span class="sup-lbl">Distância</span><span class="sup-val" id="sd4">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Tempo Est.</span><span class="sup-val" id="st4t">—</span></div>
+            <div class="sup-row"><span class="sup-lbl">Custo Frete</span><span class="sup-val" id="sc4c">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="sec" id="zapSummary" style="display:none">
+        <div class="sec-ttl"><i class="fas fa-table" style="color:var(--gold)"></i> Comparativo de Custos</div>
+        <div style="overflow-x:auto">
+          <table class="summary-table" id="zapTable">
+            <thead>
+              <tr>
+                <th>Fornecedor</th>
+                <th>km</th>
+                <th>Tempo</th>
+                <th>Frete (BRL)</th>
+              </tr>
+            </thead>
+            <tbody id="zapTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+  </div><!-- /sidebar-body -->
+</div><!-- /sidebar -->
+
+<!-- MAP -->
+<div id="mapwrap">
+  <div id="map"></div>
+  <div class="moverlay">
+    <button class="mbtn" onclick="focusChina()"><i class="fas fa-map"></i> China</button>
+    <button class="mbtn on" id="btnPorts" onclick="togglePorts()"><i class="fas fa-anchor"></i> Portos</button>
+    <button class="mbtn" id="btnSat" onclick="toggleSat()"><i class="fas fa-satellite"></i> Satélite</button>
+    <button class="mbtn" onclick="clearAll()"><i class="fas fa-trash-alt"></i> Limpar</button>
+  </div>
+  <div id="clickind"><i class="fas fa-crosshairs"></i> <span id="clickTxt">Clique para definir ponto</span></div>
+  <!-- Port legend -->
+  <div class="port-legend" id="portLegend">
+    <div class="port-legend-title">⚓ Portos — Volume TEU</div>
+    <div class="pl-row"><div class="pl-dot" style="width:14px;height:14px;background:#e8b84b;border:2px solid #fff"></div><span><b>Tier 1</b> › 20 M TEU/ano</span></div>
+    <div class="pl-row"><div class="pl-dot" style="width:10px;height:10px;background:#fd7b33;border:2px solid #c95;"></div><span><b>Tier 2</b> 5–20 M TEU</span></div>
+    <div class="pl-row"><div class="pl-dot" style="width:7px;height:7px;background:#7fb3d3;border:2px solid #4a8;"></div><span><b>Tier 3</b> › 5 M TEU</span></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- CFG MODAL -->
+<div class="overlay" id="cfgModal">
+  <div class="mbox">
+    <div class="mbox-ttl"><i class="fas fa-cog"></i> Configurações</div>
+    <div style="margin-bottom:10px">
+      <div class="lbl">Unidade de Distância</div>
+      <select id="distUnit"><option value="km">Quilômetros (km)</option><option value="mi">Milhas (mi)</option></select>
+    </div>
+    <div style="margin-bottom:10px">
+      <div class="lbl">Fator de Percurso Rodovia</div>
+      <input type="number" id="roadFactor" value="1.25" step="0.05" min="1">
+      <div class="lbl" style="margin-top:4px;font-size:.68rem">Multiplica distância em linha reta (1.0 = direto, 1.25 = 25% mais longo)</div>
+    </div>
+    <div style="text-align:right;margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="closeModal('cfgModal')">Fechar</button>
+      <button class="btn btn-gold" style="width:auto;padding:8px 22px" onclick="closeModal('cfgModal')">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────
+const CITIES = [
+  // ════════ PORTOS PRINCIPAIS ════════
+  {n:"Shanghai",t:"port",lat:31.2304,lng:121.4737,d:"Porto de Xangai — maior porto do mundo",alias:["pudong","浦东"]},
+  {n:"Shenzhen / Yantian",t:"port",lat:22.5431,lng:114.0579,d:"Porto Yantian / Shekou — Hub Sul",alias:["shekou","yantian","盐田"]},
+  {n:"Guangzhou / Nansha",t:"port",lat:22.7300,lng:113.5600,d:"Porto Nansha — Guangdong",alias:["nansha","南沙","深圳"]},
+  {n:"Ningbo-Zhoushan",t:"port",lat:29.8683,lng:121.5440,d:"Porto Ningbo — 2º maior do mundo",alias:["zhoushan","ningbo"]},
+  {n:"Tianjin",t:"port",lat:39.0250,lng:117.7200,d:"Porto de Tianjin — Norte da China",alias:["xingang"]},
+  {n:"Qingdao",t:"port",lat:36.0671,lng:120.3826,d:"Porto de Qingdao — Shandong",alias:["tsingtao"]},
+  {n:"Xiamen",t:"port",lat:24.4798,lng:118.0894,d:"Porto de Xiamen — Fujian",alias:["amoy","厦门"]},
+  {n:"Dalian",t:"port",lat:38.9140,lng:121.6147,d:"Porto de Dalian — Liaoning",alias:["dairen"]},
+
+  // ════════ HUBS INDUSTRIAIS - GUANGDONG ════════
+  {n:"Foshan",t:"factory",lat:23.0216,lng:113.1216,d:"Hub Industrial — Móveis / Cerâmica",alias:["佛山","danzao","danzao town","shunde","nanhai"]},
+  {n:"Danzao Town, Foshan",t:"factory",lat:23.1150,lng:112.9580,d:"Danzao — Distrito de Foshan (Shoizu Road)",alias:["danzao","丹灶","foshan danzao"]},
+  {n:"Shunde, Foshan",t:"factory",lat:22.7876,lng:112.8640,d:"Shunde — Distrito industrial de Foshan",alias:["shunde","顺德"]},
+  {n:"Nanhai, Foshan",t:"factory",lat:22.9238,lng:113.0700,d:"Nanhai — Distrito de Foshan (Desenvolvimento)",alias:["nanhai","南海"]},
+  {n:"Dongguan",t:"factory",lat:23.0207,lng:113.7518,d:"Hub Industrial — Eletrônicos / Calçados",alias:["东莞","humen","常平"]},
+  {n:"Humen, Dongguan",t:"factory",lat:22.8340,lng:113.6600,d:"Humen — Distrito industrial Dongguan",alias:["humen","虎门"]},
+  {n:"Zhuhai",t:"factory",lat:22.2710,lng:113.5767,d:"ZEE — Guangdong / Macao border",alias:["横琴","珠海"]},
+
+  // ════════ HUBS INDUSTRIAIS - ZHEJIANG ════════
+  {n:"Hangzhou",t:"factory",lat:30.2741,lng:120.1551,d:"Hub E-commerce — Alibaba HQ",alias:["杭州","西湖"]},
+  {n:"Huzhou",t:"factory",lat:30.8639,lng:120.1551,d:"Hub Industrial — Textil / Eletrônicos",alias:["湖州","德清"]},
+  {n:"Deqing County, Huzhou",t:"factory",lat:30.5500,lng:119.9650,d:"Deqing — Parque Industrial Shuanglin",alias:["德清","禹越"]},
+  {n:"Wenzhou",t:"factory",lat:28.0000,lng:120.6720,d:"Hub Manufatura — Calçados / Couro",alias:["温州","平阳","瑞安"]},
+  {n:"Pingyang, Wenzhou",t:"factory",lat:27.6600,lng:120.5560,d:"Pingyang — Zona Industrial Wanquan",alias:["pingyang","平阳"]},
+  {n:"Yiwu",t:"factory",lat:29.3059,lng:120.0762,d:"Maior Mercado Atacadista do Mundo",alias:["义乌","wholesale market"]},
+  {n:"Jiaxing",t:"factory",lat:30.7861,lng:120.7623,d:"Hub Têxtil — Zhejiang",alias:["嘉兴","王店"]},
+
+  // ════════ HUBS INDUSTRIAIS - SHANDONG ════════
+  {n:"Liaocheng, Shandong",t:"factory",lat:36.4564,lng:115.9854,d:"Liaocheng — Equipamentos Laser",alias:["聊城","东昌府"]},
+  {n:"Dongchangfu, Liaocheng",t:"factory",lat:36.4564,lng:115.9854,d:"Dongchangfu — Distrito Liaocheng",alias:["东昌府","聊城"]},
+  {n:"Qingdao Industrial",t:"factory",lat:36.0671,lng:120.3826,d:"Hub Industrial — Qingdao",alias:["青岛"]},
+
+  // ════════ HUBS INDUSTRIAIS - JIANGSU ════════
+  {n:"Suzhou",t:"factory",lat:31.2990,lng:120.5853,d:"Zona Industrial — Eletrônicos / IT",alias:["苏州","工业园"]},
+  {n:"Kunshan, Suzhou",t:"factory",lat:31.3815,lng:120.9498,d:"Kunshan — Hub Semicondutores",alias:["昆山"]},
+  {n:"Wuxi",t:"factory",lat:31.5901,lng:120.3037,d:"Hub Industrial — Wuxi, Jiangsu",alias:["无锡"]},
+  {n:"Nanjing",t:"factory",lat:32.0603,lng:118.7969,d:"Porto Fluvial / Hub Manufatura",alias:["南京"]},
+
+  // ════════ HUBS INDUSTRIAIS - OUTROS ════════
+  {n:"Wuhan",t:"factory",lat:30.5928,lng:114.3055,d:"Hub Central — Ferrovia / Automotivo",alias:["武汉"]},
+  {n:"Chengdu",t:"factory",lat:30.5723,lng:104.0665,d:"Hub Oeste — Rota Chengdu-Europa",alias:["成都"]},
+  {n:"Chongqing",t:"factory",lat:29.5630,lng:106.5516,d:"Hub Fluvial / Ferrovia — Yanliang",alias:["重庆"]},
+  {n:"Xi'an",t:"factory",lat:34.3416,lng:108.9398,d:"Hub Noroeste — Rota da Seda",alias:["西安"]},
+  {n:"Zhengzhou",t:"factory",lat:34.7466,lng:113.6253,d:"Hub Logístico Central — Henan",alias:["郑州"]},
+  {n:"Hefei",t:"factory",lat:31.8206,lng:117.2272,d:"Hub Manufatura — Eletrônicos",alias:["合肥"]},
+  {n:"Changsha",t:"factory",lat:28.2280,lng:112.9388,d:"Hub Centro-Sul — Construção",alias:["长沙"]},
+  {n:"Nanchang",t:"factory",lat:28.6820,lng:115.8579,d:"Manufatura — Jiangxi",alias:["南昌"]},
+  {n:"Kunming",t:"factory",lat:25.0453,lng:102.7096,d:"Hub SW — Porta ASEAN",alias:["昆明"]},
+  {n:"Harbin",t:"factory",lat:45.8038,lng:126.5349,d:"Hub Nordeste — Agricultura",alias:["哈尔滨"]},
+  {n:"Shenyang",t:"factory",lat:41.7968,lng:123.4295,d:"Hub Industrial Nordeste",alias:["沈阳"]},
+  {n:"Shantou",t:"port",lat:23.3535,lng:116.6820,d:"Porto de Shantou — Guangdong",alias:["汕头"]},
+  {n:"Beijing",t:"city",lat:39.9042,lng:116.4074,d:"Capital — Centro Político/Comercial",alias:["北京","peking"]},
+
+  // ════════ ZONAS FRANCAS ════════
+  {n:"Horgos (Fronteira KZ)",t:"freezone",lat:44.2120,lng:80.4200,d:"Fronteira China-Cazaquistão",alias:["霍尔果斯"]},
+  {n:"Pingxiang (Fronteira VN)",t:"freezone",lat:22.0980,lng:106.7540,d:"Fronteira China-Vietnã",alias:["凭祥"]},
+  {n:"Manzhouli (Fronteira RU)",t:"freezone",lat:49.5990,lng:117.4290,d:"Fronteira China-Rússia",alias:["满洲里"]},
+];
+
+// ─── ZAP SUPPLIERS ─────────────────────────────────────
+const GUANGZHOU_PORT = {lat:22.7300, lng:113.5600, name:"Porto Guangzhou Nansha"};
+const API_BASE = window.location.origin + '/api';
+
+// Fallback hardcoded — usado quando a API não está disponível
+const ZAP_SUPPLIERS_FALLBACK = [
+  { id:0, color:"#ff6b6b", name:"Foshan Dechang Technology", short:"Foshan Dechang",  ocs:["OC 2576","OC 2579"],     contact:"—",            city:"Foshan, Guangdong",   lat:23.1150, lng:112.9580, modal:"road" },
+  { id:1, color:"#4ecdc4", name:"Hangzhou Insight",          short:"Hangzhou Insight", ocs:["OC 37578"],              contact:"Sarah",         city:"Huzhou, Zhejiang",    lat:30.5500, lng:119.9650, modal:"road" },
+  { id:2, color:"#ffd93d", name:"Wenzhou Weigang Intl.",     short:"Wenzhou Weigang",  ocs:["OC 2441"],               contact:"Jean",          city:"Wenzhou, Zhejiang",   lat:27.6600, lng:120.5560, modal:"road" },
+  { id:3, color:"#a29bfe", name:"Shandong Xinst Laser",      short:"Xinst Laser",      ocs:["OC 2578","OC 2709"],     contact:"Xinster Laser", city:"Liaocheng, Shandong", lat:36.4564, lng:115.9854, modal:"road" },
+  { id:4, color:"#fd79a8", name:"Kingpack Machinery",        short:"Kingpack",         ocs:["OC 37800","OC 37801"],   contact:"Lucky",         city:"Dongguan, Guangdong", lat:22.8340, lng:113.6600, modal:"road" },
+];
+
+let ZAP_SUPPLIERS = [];
+
+async function loadSuppliersFromAPI() {
+  try {
+    const res = await fetch(`${API_BASE}/consolidation/suppliers`);
+    if (!res.ok) throw new Error('API indisponível');
+    const data = await res.json();
+    ZAP_SUPPLIERS = data.length ? data : [...ZAP_SUPPLIERS_FALLBACK];
+  } catch {
+    ZAP_SUPPLIERS = [...ZAP_SUPPLIERS_FALLBACK];
+  }
+  zapRoutes  = ZAP_SUPPLIERS.map(() => null);
+  zapMarkers = [];
+  populateOCOptions();
+}
+
+const MODAL_NAMES  = {road:"Rodoviário",rail:"Ferroviário",river:"Fluvial",air:"Aéreo"};
+const MODAL_SPEED  = {road:65,rail:110,river:22,air:820};
+const MODAL_FACTOR = {road:1.25,rail:1.18,river:1.55,air:1.02};
+const MODAL_COLORS = {road:"#e8b84b",rail:"#5599ff",river:"#44ccee",air:"#ff6688"};
+const MODAL_ICONS  = {road:"🚛",rail:"🚂",river:"⛵",air:"✈️"};
+const TYPE_ICONS   = {port:"⚓",factory:"🏭",airport:"✈️",freezone:"🏗️",city:"🏙️",warehouse:"🏪"};
+
+// ─── OPERATION REFERENCE + ITEMS ─────────────────────────
+let currentOp = { ref:'', desc:'', oc:'', items:[] };
+let itemIdSeq  = 0;
+
+// ─── SMART CITY SEARCH ──────────────────────────────────
+function searchCityByAddress(input){
+  if(!input || input.length < 2) return null;
+
+  const normalized = input.toLowerCase().trim();
+
+  // Busca exata
+  let found = CITIES.find(c => c.n.toLowerCase()===normalized ||
+                               c.alias?.some(a => a.toLowerCase()===normalized));
+  if(found) return found;
+
+  // Busca por substring (contém a palavra)
+  found = CITIES.find(c =>
+    normalized.includes(c.n.toLowerCase()) ||
+    c.alias?.some(a => normalized.includes(a.toLowerCase()))
+  );
+  if(found) return found;
+
+  // Busca parcial com palavras-chave (para endereços completos)
+  const keywords = normalized.split(/[,\s]+/).filter(w => w.length > 2);
+  const scores = CITIES.map(city => {
+    let score = 0;
+    const cityName = city.n.toLowerCase();
+    const aliases = (city.alias || []).map(a => a.toLowerCase());
+
+    // Pontos por match do nome principal
+    if(cityName.includes(keywords[0])) score += 50;
+
+    // Pontos por match de alias
+    aliases.forEach(alias => {
+      keywords.forEach(kw => {
+        if(alias.includes(kw)) score += 20;
+        if(alias === kw) score += 30;
+      });
+    });
+
+    // Pontos por match de palavras individuais
+    keywords.forEach(kw => {
+      if(cityName.includes(kw)) score += 10;
+    });
+
+    return {city, score};
+  });
+
+  const best = scores.sort((a,b) => b.score - a.score)[0];
+  return best?.score > 0 ? best.city : null;
+}
+
+function updateOpRef(){
+  currentOp.ref  = document.getElementById('opRef')?.value  || '';
+  currentOp.desc = document.getElementById('opDesc')?.value || '';
+
+  // OC from dropdown or custom input
+  const ocSelect = document.getElementById('opOC')?.value || '';
+  const ocCustom = document.getElementById('opOCCustom')?.value || '';
+  currentOp.oc = ocCustom || ocSelect;
+}
+
+function populateOCOptions(){
+  const select = document.getElementById('opOC');
+  if(!select) return;
+
+  // Collect all unique OCs from suppliers
+  const allOCs = new Set();
+  ZAP_SUPPLIERS.forEach(s => {
+    if(s.ocs && Array.isArray(s.ocs)){
+      s.ocs.forEach(oc => allOCs.add(oc));
+    }
+  });
+
+  // Populate select dropdown
+  const options = ['<option value="">— Selecione ou Digite —</option>'];
+  Array.from(allOCs).sort().forEach(oc => {
+    options.push(`<option value="${oc}">${oc}</option>`);
+  });
+  select.innerHTML = options.join('');
+}
+
+function addItem(){
+  const id = ++itemIdSeq;
+  currentOp.items.push({ id, desc:'', qty:1, unit:'UN', usd:0 });
+  renderItems();
+}
+
+function removeItem(id){
+  currentOp.items = currentOp.items.filter(i=>i.id!==id);
+  renderItems();
+}
+
+function updateItem(id, field, val){
+  const item = currentOp.items.find(i=>i.id===id);
+  if(item){ item[field] = val; calcItemsSum(); }
+}
+
+function renderItems(){
+  const list = document.getElementById('itemList');
+  if(!list) return;
+  if(!currentOp.items.length){
+    list.innerHTML=`<div style="text-align:center;padding:10px 0;color:var(--muted);font-size:.75rem">
+      <i class="fas fa-box-open" style="opacity:.25"></i> Nenhum item adicionado</div>`;
+    document.getElementById('itemsSum').style.display='none';
+    document.getElementById('itemCountBadge').textContent='';
+    return;
+  }
+  list.innerHTML = currentOp.items.map(it=>`
+    <div class="item-row" id="irow${it.id}">
+      <input type="text" value="${it.desc}" placeholder="Produto…" style="flex:3"
+        oninput="updateItem(${it.id},'desc',this.value)">
+      <input type="number" value="${it.qty}" min="1" style="flex:1;text-align:center;max-width:48px"
+        oninput="updateItem(${it.id},'qty',parseFloat(this.value)||1)">
+      <select style="flex:1;max-width:52px" onchange="updateItem(${it.id},'unit',this.value)">
+        ${['UN','KG','M','M²','M³','CX','PC'].map(u=>`<option${u===it.unit?' selected':''}>${u}</option>`).join('')}
+      </select>
+      <input type="number" value="${it.usd||''}" placeholder="0" min="0" step="0.01" style="flex:1;text-align:right;max-width:62px"
+        oninput="updateItem(${it.id},'usd',parseFloat(this.value)||0)">
+      <div class="item-total" id="itot${it.id}">$ ${((it.qty||1)*(it.usd||0)).toFixed(2)}</div>
+      <button class="btn-red" style="padding:3px 6px" onclick="removeItem(${it.id})"><i class="fas fa-times"></i></button>
+    </div>`).join('');
+  calcItemsSum();
+}
+
+function calcItemsSum(){
+  currentOp.items.forEach(it=>{
+    const el=document.getElementById(`itot${it.id}`);
+    if(el) el.textContent=`$ ${((it.qty||1)*(it.usd||0)).toFixed(2)}`;
+  });
+  const totalUSD = currentOp.items.reduce((s,i)=>s+(i.qty||1)*(i.usd||0),0);
+  const totalQty = currentOp.items.reduce((s,i)=>s+(i.qty||1),0);
+  const sumEl=document.getElementById('itemsSum');
+  if(currentOp.items.length && sumEl){
+    sumEl.style.display='flex';
+    document.getElementById('sumQty').textContent = totalQty.toLocaleString('pt-BR');
+    document.getElementById('sumUSD').textContent = totalUSD.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  } else if(sumEl) sumEl.style.display='none';
+  const badge=document.getElementById('itemCountBadge');
+  if(badge) badge.textContent = currentOp.items.length ? `${currentOp.items.length} item(s)` : '';
+}
+
+// ─── STATE ──────────────────────────────────────────────
+let map, osmTile, satTile;
+let oriLL=null, dstLL=null, oriMk=null, dstMk=null;
+let routeLayer=null, portLayer=[];
+let wps=[], wpId=0;
+let cMode=null, selMod="road";
+let showPorts=true;
+// ZAP multi-route state
+let zapRoutes=[], zapMarkers=[], zapPortMk=null, zapInited=false;
+
+// ─── INIT ────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async ()=>{
+  map = L.map('map',{center:[33,108],zoom:5,zoomControl:true});
+  osmTile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap',maxZoom:18});
+  satTile = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+    attribution:'© Esri',maxZoom:18});
+  osmTile.addTo(map);
+
+  buildPortLayer();
+
+  map.on('click',e=>{ if(cMode) handleClick(e.latlng); });
+
+  await loadSuppliersFromAPI(); // carrega fornecedores do banco (fallback hardcoded)
+
+  renderItems();
+  renderManualOps();
+  renderCntRoutesList();
+
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.sug')&&!e.target.closest('input'))
+      document.querySelectorAll('.sug').forEach(s=>s.style.display='none');
+  });
+});
+
+// ─── PORT TIERS ──────────────────────────────────────────
+const PORT_TEU = {
+  'Shanghai':              { teu:47, tier:1, rank:'#1 Mundial' },
+  'Ningbo-Zhoushan':       { teu:35, tier:1, rank:'#3 Mundial' },
+  'Shenzhen / Yantian':    { teu:29, tier:1, rank:'#4 Mundial' },
+  'Guangzhou / Nansha':    { teu:24, tier:1, rank:'#5 Mundial' },
+  'Qingdao':               { teu:25, tier:1, rank:'#6 Mundial' },
+  'Tianjin':               { teu:22, tier:1, rank:'#7 Mundial' },
+  'Xiamen':                { teu:12, tier:2, rank:'Top 15 Mundial' },
+  'Dalian':                { teu:8,  tier:2, rank:'Top 20 Mundial' },
+  'Lianyungang':           { teu:5,  tier:2, rank:'Porto Regional' },
+  'Nanjing':               { teu:3,  tier:3, rank:'Porto Fluvial' },
+  'Tianjin Xingang':       { teu:22, tier:1, rank:'#7 Mundial' },
+  'Shantou':               { teu:2,  tier:3, rank:'Porto Regional' },
+};
+
+const TIER_STYLE = {
+  1: { radius:13, fillColor:'#e8b84b', color:'#a06010', weight:2.5, fillOpacity:.9 },
+  2: { radius:9,  fillColor:'#fd7b33', color:'#b04010', weight:2,   fillOpacity:.85 },
+  3: { radius:6,  fillColor:'#7fb3d3', color:'#3a6a8a', weight:1.5, fillOpacity:.8 },
+};
+
+// ─── PORT FREIGHT RATES (USD per container) ──────────────
+const PORT_FREIGHT_RATES = {
+  'Shanghai':           { '20gp':1100, '40gp':1600, '40hc':1800, '45hc':2000 },
+  'Shenzhen / Yantian': { '20gp':950,  '40gp':1350, '40hc':1500, '45hc':1700 },
+  'Guangzhou / Nansha': { '20gp':950,  '40gp':1400, '40hc':1550, '45hc':1750 },
+  'Ningbo-Zhoushan':    { '20gp':1000, '40gp':1450, '40hc':1600, '45hc':1800 },
+  'Tianjin':            { '20gp':1050, '40gp':1500, '40hc':1650, '45hc':1850 },
+  'Qingdao':            { '20gp':1050, '40gp':1500, '40hc':1650, '45hc':1850 },
+  'Xiamen':             { '20gp':850,  '40gp':1200, '40hc':1350, '45hc':1500 },
+  'Dalian':             { '20gp':1100, '40gp':1600, '40hc':1750, '45hc':1950 },
+};
+
+// ─── PORTS ───────────────────────────────────────────────
+function buildPortLayer(){
+  CITIES.filter(c=>c.t==='port').forEach(c=>{
+    const info = PORT_TEU[c.n] || { teu:1, tier:3, rank:'Porto' };
+    const style = TIER_STYLE[info.tier];
+
+    const m = L.circleMarker([c.lat,c.lng], style);
+
+    // Tooltip rico
+    const teuStr = info.teu>=20
+      ? `<span style="color:#e8b84b;font-weight:700">${info.teu}M TEU/ano</span>`
+      : `${info.teu}M TEU/ano`;
+    m.bindTooltip(`
+      <div style="min-width:170px">
+        <b style="font-size:.85rem">${c.n}</b>
+        <div style="font-size:.75rem;color:#aaa;margin:2px 0">${c.d}</div>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;margin-top:4px">
+          <span>${teuStr}</span>
+          <span style="color:#88bbdd">${info.rank}</span>
+        </div>
+        ${info.tier===1?'<div style="font-size:.65rem;color:#e8b84b;margin-top:3px">⭐ Porto Principal — Alta Frequência</div>':''}
+      </div>`, { className:'leaflet-tooltip-custom' });
+
+    // Label permanente para Tier 1
+    if(info.tier===1){
+      const label = L.tooltip({
+        permanent:true, direction:'right', offset:[info.tier===1?14:10,0],
+        className:'port-label-t1'
+      }).setContent(`<span style="font-size:.62rem;font-weight:700;color:#e8b84b;
+        background:rgba(13,21,32,.85);padding:1px 5px;border-radius:3px;
+        border:1px solid rgba(232,184,75,.4)">${c.n}</span>`);
+      m.bindTooltip(label);
+      // rebind rich tooltip on hover
+      m.on('mouseover', function(){
+        this.unbindTooltip();
+        this.bindTooltip(`<div style="min-width:170px">
+          <b>${c.n}</b><div style="font-size:.72rem;color:#aaa">${c.d}</div>
+          <div style="font-size:.72rem;margin-top:3px">${teuStr} · ${info.rank}</div>
+          <div style="font-size:.65rem;color:#e8b84b;margin-top:2px">⭐ Tier 1 — Alta Rotatividade</div>
+        </div>`).openTooltip();
+      });
+      m.on('mouseout', function(){
+        this.unbindTooltip();
+        this.bindTooltip(label);
+      });
+    }
+
+    m.on('click',()=>{
+      if(cMode==='origin'){ setOri(c.lat,c.lng,c.n); exitMode(); }
+      else if(cMode==='dest'){ setDst(c.lat,c.lng,c.n); exitMode(); }
+      else { m.openPopup(); }
+    });
+
+    // Popup com detalhes do porto
+    m.bindPopup(`
+      <div style="min-width:200px">
+        <div style="font-size:.9rem;font-weight:700;margin-bottom:4px">${c.n}</div>
+        <div style="font-size:.75rem;color:#555;margin-bottom:6px">${c.d}</div>
+        <table style="width:100%;font-size:.72rem;border-collapse:collapse">
+          <tr><td style="color:#888">Volume</td><td style="font-weight:700;text-align:right">${info.teu}M TEU/ano</td></tr>
+          <tr><td style="color:#888">Ranking</td><td style="font-weight:700;text-align:right">${info.rank}</td></tr>
+          <tr><td style="color:#888">Tier</td><td style="text-align:right">${['','⭐ Tier 1','Tier 2','Tier 3'][info.tier]}</td></tr>
+        </table>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="setOri(${c.lat},${c.lng},'${c.n}');map.closePopup()"
+            style="flex:1;padding:4px;border-radius:4px;border:1px solid #3c9;color:#3c9;background:none;cursor:pointer;font-size:.7rem">
+            ✔ Origem
+          </button>
+          <button onclick="setDst(${c.lat},${c.lng},'${c.n}');map.closePopup()"
+            style="flex:1;padding:4px;border-radius:4px;border:1px solid #e55;color:#e55;background:none;cursor:pointer;font-size:.7rem">
+            ✔ Destino
+          </button>
+        </div>
+      </div>`);
+
+    portLayer.push(m);
+    if(showPorts) m.addTo(map);
+  });
+}
+
+function togglePorts(){
+  showPorts=!showPorts;
+  portLayer.forEach(m=> showPorts ? m.addTo(map) : map.removeLayer(m));
+  document.getElementById('btnPorts').classList.toggle('on',showPorts);
+}
+
+function toggleSat(){
+  const btn=document.getElementById('btnSat');
+  if(map.hasLayer(satTile)){ map.removeLayer(satTile); osmTile.addTo(map); btn.classList.remove('on'); }
+  else { map.removeLayer(osmTile); satTile.addTo(map); btn.classList.add('on'); }
+}
+
+function focusChina(){ map.setView([33,108],5); }
+
+function clearAll(){
+  oriLL=dstLL=null;
+  if(oriMk){ map.removeLayer(oriMk); oriMk=null; }
+  if(dstMk){ map.removeLayer(dstMk); dstMk=null; }
+  if(routeLayer){ map.removeLayer(routeLayer); routeLayer=null; }
+  document.getElementById('oriIn').value='';
+  document.getElementById('dstIn').value='';
+  document.getElementById('wpList').innerHTML='';
+  wps=[];
+  document.getElementById('resEmpty').style.display='';
+  document.getElementById('resContent').style.display='none';
+  notify('Mapa limpo','ok');
+}
+
+// ─── CLICK MODE ──────────────────────────────────────────
+function clickMode(m){
+  cMode=m;
+  const txt = m==='origin'?'Clique no mapa para definir ORIGEM':'Clique no mapa para definir DESTINO';
+  document.getElementById('clickTxt').textContent=txt;
+  document.getElementById('clickind').style.display='block';
+  map.getContainer().style.cursor='crosshair';
+  document.getElementById('oriBtnMap').classList.toggle('on',m==='origin');
+  document.getElementById('dstBtnMap').classList.toggle('on',m==='dest');
+}
+
+function exitMode(){
+  cMode=null;
+  document.getElementById('clickind').style.display='none';
+  map.getContainer().style.cursor='';
+  document.getElementById('oriBtnMap').classList.remove('on');
+  document.getElementById('dstBtnMap').classList.remove('on');
+}
+
+function handleClick(ll){
+  if(cMode==='origin') setOri(ll.lat,ll.lng);
+  else if(cMode==='dest') setDst(ll.lat,ll.lng);
+  exitMode();
+}
+
+// ─── SET POINTS ──────────────────────────────────────────
+function mkIcon(label,color){
+  return L.divIcon({
+    className:'',
+    html:`<div style="background:${color};color:#fff;width:28px;height:28px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);border:2px solid rgba(255,255,255,.7);box-shadow:0 2px 8px rgba(0,0,0,.5);
+          display:flex;align-items:center;justify-content:center">
+          <span style="transform:rotate(45deg);font-weight:800;font-size:11px">${label}</span></div>`,
+    iconSize:[28,28], iconAnchor:[14,28]
+  });
+}
+
+function setOri(lat,lng,name){
+  oriLL={lat,lng};
+  const nm = name||`${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  document.getElementById('oriIn').value=nm;
+  if(oriMk) map.removeLayer(oriMk);
+  oriMk = L.marker([lat,lng],{icon:mkIcon('A','#22bb77')}).addTo(map);
+  oriMk.bindPopup(`<b>Origem</b><br>${nm}`);
+}
+
+function setDst(lat,lng,name){
+  dstLL={lat,lng};
+  const nm = name||`${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  document.getElementById('dstIn').value=nm;
+  if(dstMk) map.removeLayer(dstMk);
+  dstMk = L.marker([lat,lng],{icon:mkIcon('B','#dd3344')}).addTo(map);
+  dstMk.bindPopup(`<b>Destino</b><br>${nm}`);
+}
+
+// ─── SUGGESTIONS — INTELIGENTE ──────────────────────────
+function suggest(inp,sugId,mode){
+  const q=inp.value.toLowerCase().trim();
+  const sug=document.getElementById(sugId);
+  if(q.length<2){ sug.style.display='none'; return; }
+
+  // Busca inteligente que encontra cidade em endereços completos
+  const smartMatch = searchCityByAddress(q);
+
+  let res;
+  if(smartMatch){
+    // Se encontrou match inteligente, coloca ele primeiro
+    res = [smartMatch, ...CITIES.filter(c => c.n !== smartMatch.n && (c.n.toLowerCase().includes(q) || c.d.toLowerCase().includes(q)))].slice(0,7);
+  } else {
+    // Senão, faz busca normal
+    res = CITIES.filter(c => c.n.toLowerCase().includes(q) || c.d.toLowerCase().includes(q) || c.alias?.some(a => a.toLowerCase().includes(q))).slice(0,7);
+  }
+
+  if(!res.length){ sug.style.display='none'; return; }
+  sug.innerHTML=res.map(c=>`
+    <div class="sug-item" onclick="pickSug('${sugId}','${mode}','${c.n}',${c.lat},${c.lng})">
+      ${TYPE_ICONS[c.t]||'📍'} <b>${c.n}</b>
+      <div class="sug-sub">${c.d}</div>
+    </div>`).join('');
+  sug.style.display='block';
+}
+
+function pickSug(sugId,mode,name,lat,lng){
+  document.getElementById(sugId).style.display='none';
+  if(mode==='origin') setOri(lat,lng,name);
+  else setDst(lat,lng,name);
+  map.setView([lat,lng],8);
+}
+
+// ─── WAYPOINTS ───────────────────────────────────────────
+function addWP(){
+  const id=++wpId;
+  wps.push({id,lat:null,lng:null,name:''});
+  const list=document.getElementById('wpList');
+  const d=document.createElement('div');
+  d.id=`wp${id}`;
+  d.className='wpitem';
+  d.innerHTML=`
+    <div class="wpnum">${wps.length}</div>
+    <div style="position:relative;flex:1">
+      <input type="text" style="padding:5px 9px" placeholder="Parada intermediária…"
+        oninput="suggestWP(this,${id})" autocomplete="off">
+      <div id="wpSug${id}" class="sug"></div>
+    </div>
+    <button class="btn-red" onclick="removeWP(${id})"><i class="fas fa-times"></i></button>`;
+  list.appendChild(d);
+}
+
+function suggestWP(inp,id){
+  const q=inp.value.toLowerCase().trim();
+  const sug=document.getElementById(`wpSug${id}`);
+  if(q.length<2){ sug.style.display='none'; return; }
+
+  // Busca inteligente para waypoints também
+  const smartMatch = searchCityByAddress(q);
+  let res;
+  if(smartMatch){
+    res = [smartMatch, ...CITIES.filter(c => c.n !== smartMatch.n && (c.n.toLowerCase().includes(q) || c.d.toLowerCase().includes(q)))].slice(0,5);
+  } else {
+    res = CITIES.filter(c => c.n.toLowerCase().includes(q) || c.d.toLowerCase().includes(q) || c.alias?.some(a => a.toLowerCase().includes(q))).slice(0,5);
+  }
+
+  if(!res.length){ sug.style.display='none'; return; }
+  sug.innerHTML=res.map(c=>`
+    <div class="sug-item" onclick="pickWP(${id},'${c.n}',${c.lat},${c.lng})">
+      ${TYPE_ICONS[c.t]||'📍'} <b>${c.n}</b>
+      <div class="sug-sub">${c.d}</div>
+    </div>`).join('');
+  sug.style.display='block';
+}
+
+function pickWP(id,name,lat,lng){
+  const wp=wps.find(w=>w.id===id);
+  if(wp){ wp.lat=lat; wp.lng=lng; wp.name=name; }
+  const inp=document.querySelector(`#wp${id} input`);
+  if(inp) inp.value=name;
+  document.getElementById(`wpSug${id}`).style.display='none';
+}
+
+function removeWP(id){
+  wps=wps.filter(w=>w.id!==id);
+  const el=document.getElementById(`wp${id}`);
+  if(el) el.remove();
+}
+
+// ─── MODAL SELECT ────────────────────────────────────────
+function selModal(btn,m){
+  document.querySelectorAll('.mtbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  selMod=m;
+}
+
+// ─── TABS ─────────────────────────────────────────────────
+function tab(id,btn){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('tc-'+id).classList.add('on');
+}
+
+// ─── CALC ─────────────────────────────────────────────────
+function calc(){
+  if(!oriLL||!dstLL){ notify('Defina origem e destino primeiro!','err'); return; }
+
+  const factor = parseFloat(document.getElementById('roadFactor')?.value||1.25);
+  const mFactor = MODAL_FACTOR[selMod]||factor;
+
+  // Straight-line distance
+  const d0 = haversine(oriLL.lat,oriLL.lng,dstLL.lat,dstLL.lng);
+  const dist = d0 * mFactor;
+
+  // Costs
+  const costs = computeCosts(dist);
+  window._lastCostRaw = costs.rawTotal; // expõe para cálculo de container
+
+  // Draw
+  drawRoute(dist);
+
+  // Update result panel
+  updatePanel(dist,costs);
+
+  // Switch tab
+  tab('res',document.querySelectorAll('.tab')[2]);
+
+  notify(`Rota calculada: ${fmtDist(dist)}`,'ok');
+}
+
+function haversine(a,b,c,d){
+  const R=6371,dr=(c-a)*Math.PI/180,dg=(d-b)*Math.PI/180;
+  const h=Math.sin(dr/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dg/2)**2;
+  return R*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
+}
+
+function computeCosts(dist){
+  const qty  = parseInt(document.getElementById('cQty').value)||1;
+  const wt   = parseFloat(document.getElementById('cWeight').value)||1000;
+  const vol  = parseFloat(document.getElementById('cVol').value)||5;
+  const curr = document.getElementById('curr').value;
+  const usd  = parseFloat(document.getElementById('usdBrl').value)||5.05;
+  const rates= {
+    road:  parseFloat(document.getElementById('rRoad').value)||0.08,
+    rail:  parseFloat(document.getElementById('rRail').value)||0.05,
+    river: parseFloat(document.getElementById('rRiver').value)||0.03,
+    air:   parseFloat(document.getElementById('rAir').value)||0.45,
+  };
+  const mul = curr==='BRL'?usd:1;
+  const sym = curr==='BRL'?'R$':curr==='USD'?'$':curr;
+
+  const trans = dist * rates[selMod] * qty;
+  const fuel  = trans * 0.18;
+  const toll  = selMod==='road' ? dist*0.02*qty : 0;
+  const thc   = parseFloat(document.getElementById('fThc').value)*qty;
+  const doc   = parseFloat(document.getElementById('fDoc').value)+parseFloat(document.getElementById('fSeal').value)*qty;
+  const pct   = trans*(parseFloat(document.getElementById('fPct').value)/100);
+  const brk   = parseFloat(document.getElementById('fBrk').value);
+  const cert  = parseFloat(document.getElementById('fCert').value);
+  const insp  = parseFloat(document.getElementById('fInsp').value)+parseFloat(document.getElementById('fOther').value);
+  const total = trans+fuel+toll+thc+doc+pct+brk+cert+insp;
+
+  return {
+    trans:trans*mul, fuel:fuel*mul, toll:toll*mul,
+    thc:thc*mul, doc:doc*mul, pct:pct*mul,
+    brk:brk*mul, cert:cert*mul, insp:insp*mul,
+    total:total*mul, perKg:(total/wt)*mul, perCbm:(total/vol)*mul,
+    rawTotal:total, sym, mult:mul
+  };
+}
+
+function updatePanel(dist,c){
+  document.getElementById('resEmpty').style.display='none';
+  document.getElementById('resContent').style.display='';
+  // route summary
+  document.getElementById('rOri').textContent  = document.getElementById('oriIn').value;
+  document.getElementById('rDst').textContent  = document.getElementById('dstIn').value;
+  document.getElementById('rDist').textContent = fmtDist(dist);
+  document.getElementById('rMod').textContent  = MODAL_ICONS[selMod]+' '+MODAL_NAMES[selMod];
+  document.getElementById('rTime').textContent = fmtTime(dist/MODAL_SPEED[selMod]);
+  // cost summary (simplified)
+  const freteTotal = c.trans+c.fuel+c.toll;
+  const portTotal  = c.thc+c.doc+c.pct;
+  const brokerTotal= c.brk+c.cert+c.insp;
+  document.getElementById('cs_frete').textContent  = fmtM(freteTotal, c.sym);
+  document.getElementById('cs_port').textContent   = fmtM(portTotal,  c.sym);
+  document.getElementById('cs_broker').textContent = fmtM(brokerTotal, c.sym);
+  document.getElementById('cs_total').textContent  = fmtM(c.total,    c.sym);
+  document.getElementById('cs_kg').textContent     = fmtM(c.perKg,    c.sym)+'/kg';
+  document.getElementById('cs_cbm').textContent    = fmtM(c.perCbm,   c.sym)+'/m³';
+  buildAlt(dist,c);
+}
+
+function buildAlt(dist,base){
+  const alts = Object.keys(MODAL_NAMES).filter(m=>m!==selMod);
+  const curr = document.getElementById('curr').value;
+  const usd  = parseFloat(document.getElementById('usdBrl').value)||5.05;
+  const mul  = curr==='BRL'?usd:1;
+  const sym  = curr==='BRL'?'R$':curr==='USD'?'$':curr;
+  const rates= {
+    road:  parseFloat(document.getElementById('rRoad').value)||0.08,
+    rail:  parseFloat(document.getElementById('rRail').value)||0.05,
+    river: parseFloat(document.getElementById('rRiver').value)||0.03,
+    air:   parseFloat(document.getElementById('rAir').value)||0.45,
+  };
+  const qty=parseInt(document.getElementById('cQty').value)||1;
+  const d0=haversine(oriLL.lat,oriLL.lng,dstLL.lat,dstLL.lng);
+
+  document.getElementById('altRoutes').innerHTML = alts.map(m=>{
+    const d = d0 * MODAL_FACTOR[m];
+    const cost = (d*rates[m]*qty*1.18)*mul;
+    const diff = cost - base.rawTotal*mul;
+    const pos  = diff<=0;
+    return `<div class="arc" onclick="switchMod('${m}')">
+      <div class="arch">
+        <span style="font-weight:600;font-size:.82rem">${MODAL_ICONS[m]} ${MODAL_NAMES[m]}</span>
+        <span style="font-size:.8rem;font-weight:700;color:${pos?'#3c9':'#fa3'}">${diff>0?'+':''}${fmtM(diff,sym)}</span>
+      </div>
+      <div class="arcb">
+        <span>📏 ${fmtDist(d)}</span>
+        <span>⏱ ${fmtTime(d/MODAL_SPEED[m])}</span>
+        <span>💰 ${fmtM(cost,sym)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function switchMod(m){
+  selMod=m;
+  document.querySelectorAll('.mtbtn').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  calc();
+}
+
+// ─── ROUTE DRAWING ───────────────────────────────────────
+function drawRoute(){
+  if(routeLayer){ map.removeLayer(routeLayer); routeLayer=null; }
+
+  const url=`https://router.project-osrm.org/route/v1/driving/${oriLL.lng},${oriLL.lat};${dstLL.lng},${dstLL.lat}?overview=full&geometries=geojson`;
+
+  fetch(url,{signal:AbortSignal.timeout(6000)})
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.routes&&data.routes[0]){
+        const pts=data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+        renderLine(pts);
+      } else fallbackLine();
+    })
+    .catch(()=>fallbackLine());
+}
+
+function renderLine(pts){
+  const col=MODAL_COLORS[selMod]||'#e8b84b';
+  const dash=selMod==='air'?'10,8':null;
+  routeLayer=L.layerGroup([
+    L.polyline(pts,{color:'#000',weight:6,opacity:.25}),
+    L.polyline(pts,{color:col,weight:3.5,opacity:.95,dashArray:dash})
+  ]).addTo(map);
+  const b=L.latLngBounds([[oriLL.lat,oriLL.lng],[dstLL.lat,dstLL.lng]]);
+  map.fitBounds(b.pad(.22));
+}
+
+function fallbackLine(){
+  const pts=[];
+  for(let i=0;i<=60;i++){
+    const t=i/60;
+    const la=oriLL.lat+(dstLL.lat-oriLL.lat)*t;
+    const ln=oriLL.lng+(dstLL.lng-oriLL.lng)*t;
+    const crv=Math.sin(t*Math.PI)*1.8;
+    pts.push([la+crv,ln]);
+  }
+  renderLine(pts);
+}
+
+// ─── FORMAT ──────────────────────────────────────────────
+function fmtDist(km){
+  const u=document.getElementById('distUnit')?.value||'km';
+  return u==='mi'?`${(km*.621371).toFixed(0)} mi`:`${km.toFixed(0)} km`;
+}
+
+function fmtTime(h){
+  if(h<1) return `${Math.round(h*60)} min`;
+  const d=Math.floor(h/24), hr=Math.round(h%24);
+  return d>0?`${d}d ${hr}h`:`${Math.round(h)}h`;
+}
+
+function fmtM(v,sym){
+  return `${sym} ${v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+}
+
+// ─── MISC ─────────────────────────────────────────────────
+// ─── CONTAINER CONSOLIDATION ────────────────────────────
+
+const CNT_SPECS = {
+  '20gp': { label:"20' GP",  vol:33.2, maxKg:28180 },
+  '40gp': { label:"40' GP",  vol:67.7, maxKg:26750 },
+  '40hc': { label:"40' HC",  vol:76.3, maxKg:26460 },
+  '45hc': { label:"45' HC",  vol:86.1, maxKg:27600 },
+};
+
+// ── saved routes (from Resultado tab) ──
+let savedRoutes = [];
+let savedRouteIdSeq = 0;
+
+// ── manual ops (Container tab, manual sub-tab) ──
+let manualOps = [];
+let manualOpIdSeq = 0;
+
+let selCnt = null;
+let selectedEmbarquePort = 'Guangzhou / Nansha';
+
+// ── Result tab: add current route to consolidation ──
+function addRouteToConsolidation(){
+  if(!oriLL||!dstLL){ notify('Calcule uma rota primeiro','err'); return; }
+  updateOpRef();
+  const vol   = parseFloat(document.getElementById('res_vol').value)||5;
+  const kg    = parseFloat(document.getElementById('res_kg').value)||1000;
+  const ori   = document.getElementById('rOri').textContent;
+  const dst   = document.getElementById('rDst').textContent;
+  const dist  = document.getElementById('rDist').textContent;
+  const mod   = document.getElementById('rMod').textContent;
+  const time  = document.getElementById('rTime').textContent;
+  const total = window._lastCostRaw||0;
+  const ref   = currentOp.ref  || `OP-${String(savedRouteIdSeq+1).padStart(3,'0')}`;
+  const desc  = currentOp.desc || '';
+  const oc    = currentOp.oc   || '';
+  const items = JSON.parse(JSON.stringify(currentOp.items)); // snapshot
+  const totalUSD = items.reduce((s,i)=>s+(i.qty||1)*(i.usd||0),0);
+  const id = ++savedRouteIdSeq;
+  savedRoutes.push({id, ref, desc, oc, ori, dst, dist, mod, time, vol, kg, costUSD:total, items, totalUSD});
+  renderSavedRoutes();
+  renderCntRoutesList();
+  refreshCntStats();
+  notify(`${ref}${oc?` (${oc})`:''}adicionada à consolidação`,'ok');
+}
+
+function renderSavedRoutes(){
+  const sec = document.getElementById('savedRoutesSection');
+  const list= document.getElementById('savedRoutesList');
+  if(!savedRoutes.length){ sec.style.display='none'; return; }
+  sec.style.display='';
+  document.getElementById('savedCount').textContent = savedRoutes.length;
+  list.innerHTML = savedRoutes.map(r=>`
+    <div class="sroute-card">
+      <div class="sroute-top">
+        <div class="sroute-id">${r.id}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+            <span style="background:var(--gold);color:#000;font-size:.62rem;font-weight:800;padding:1px 7px;border-radius:10px">${r.ref}</span>
+            ${r.oc?`<span style="background:#e8b84b22;color:#e8b84b;font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:10px;border:1px solid #e8b84b55"><i class="fas fa-receipt"></i> ${r.oc}</span>`:''}
+            ${r.desc?`<span style="font-size:.68rem;color:var(--muted)">${r.desc}</span>`:''}
+          </div>
+          <div class="sroute-route">${r.ori} → ${r.dst}</div>
+          <div class="sroute-sub">${r.mod}</div>
+        </div>
+        <button class="btn-red" onclick="removeSaved(${r.id})"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="sroute-pills">
+        <span class="pill grn"><i class="fas fa-road"></i> ${r.dist}</span>
+        <span class="pill yel"><i class="fas fa-clock"></i> ${r.time}</span>
+        <span class="pill gld"><i class="fas fa-cube"></i> ${r.vol} m³ · ${r.kg.toLocaleString('pt-BR')} kg</span>
+        ${r.items&&r.items.length?`<span class="pill" style="border-color:#4ecdc4;color:#4ecdc4"><i class="fas fa-boxes"></i> ${r.items.length} itens · $ ${r.totalUSD.toFixed(2)}</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function removeSaved(id){
+  savedRoutes = savedRoutes.filter(r=>r.id!==id);
+  renderSavedRoutes();
+  renderCntRoutesList();
+  refreshCntStats();
+}
+
+function clearSaved(){
+  savedRoutes=[];
+  renderSavedRoutes();
+  renderCntRoutesList();
+  refreshCntStats();
+}
+
+// ── Container tab: routes sub-panel ──
+function renderCntRoutesList(){
+  const list = document.getElementById('cntRoutesList');
+  if(!list) return;
+  if(!savedRoutes.length){
+    list.innerHTML=`<div class="empty" style="padding:20px 0"><i class="fas fa-route" style="font-size:1.8rem;opacity:.2"></i>Nenhuma rota adicionada.<br><small>Calcule uma rota e use "Adicionar à Consolidação"</small></div>`;
+    return;
+  }
+  list.innerHTML = savedRoutes.map(r=>`
+    <div class="sroute-card">
+      <div class="sroute-top">
+        <input type="checkbox" class="sroute-check" id="rchk${r.id}" checked onchange="refreshCntStats()">
+        <div class="sroute-id">${r.id}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+            <span style="background:var(--gold);color:#000;font-size:.6rem;font-weight:800;padding:1px 6px;border-radius:10px">${r.ref}</span>
+            ${r.oc?`<span style="background:#e8b84b22;color:#e8b84b;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:10px;border:1px solid #e8b84b55"><i class="fas fa-receipt"></i> ${r.oc}</span>`:''}
+            ${r.desc?`<span style="font-size:.65rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px">${r.desc}</span>`:''}
+          </div>
+          <div class="sroute-route" style="font-size:.78rem">${r.ori} → ${r.dst}</div>
+          <div class="sroute-sub">${r.mod} · ${r.dist}
+            ${r.items&&r.items.length?`· <span style="color:#4ecdc4">${r.items.length} itens</span>`:''}
+          </div>
+        </div>
+        <button class="btn-red" onclick="removeSaved(${r.id})"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="sroute-inputs">
+        <div><div class="lbl-mini">Volume m³</div>
+          <input type="number" value="${r.vol}" min="0" step="0.5"
+            style="background:#0a1220;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 7px;font-size:.75rem;width:100%"
+            oninput="updateSavedVol(${r.id},parseFloat(this.value)||0)">
+        </div>
+        <div><div class="lbl-mini">Peso KG</div>
+          <input type="number" value="${r.kg}" min="0" step="100"
+            style="background:#0a1220;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 7px;font-size:.75rem;width:100%"
+            oninput="updateSavedKg(${r.id},parseFloat(this.value)||0)">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function updateSavedVol(id,v){ const r=savedRoutes.find(x=>x.id===id); if(r){r.vol=v; refreshCntStats();} }
+function updateSavedKg(id,v) { const r=savedRoutes.find(x=>x.id===id); if(r){r.kg=v;  refreshCntStats();} }
+
+// ── Container tab: manual sub-panel ──
+function addManualOp(){
+  const id=++manualOpIdSeq;
+  manualOps.push({id,desc:'',vol:0,kg:0});
+  renderManualOps();
+}
+
+function renderManualOps(){
+  const list=document.getElementById('manualOpList');
+  if(!list) return;
+  if(!manualOps.length){
+    list.innerHTML=`<div style="text-align:center;padding:12px 0;color:var(--muted);font-size:.75rem"><i class="fas fa-box-open" style="opacity:.25"></i> Nenhum item adicionado</div>`;
+    return;
+  }
+  list.innerHTML=manualOps.map(o=>`
+    <div class="op-item">
+      <div class="op-desc">
+        <div class="lbl-mini">Descrição / OC</div>
+        <input type="text" value="${o.desc}" placeholder="Ex: OC 2576"
+          oninput="updateManual(${o.id},'desc',this.value)">
+      </div>
+      <div class="op-num" style="max-width:68px">
+        <div class="lbl-mini">m³</div>
+        <input type="number" value="${o.vol||''}" placeholder="0" min="0" step="0.1"
+          oninput="updateManual(${o.id},'vol',parseFloat(this.value)||0)">
+      </div>
+      <div class="op-num" style="max-width:72px">
+        <div class="lbl-mini">KG</div>
+        <input type="number" value="${o.kg||''}" placeholder="0" min="0" step="10"
+          oninput="updateManual(${o.id},'kg',parseFloat(this.value)||0)">
+      </div>
+      <button class="btn-red" style="flex-shrink:0;margin-top:12px" onclick="removeManual(${o.id})"><i class="fas fa-times"></i></button>
+    </div>`).join('');
+  refreshCntStats();
+}
+
+function updateManual(id,f,v){ const o=manualOps.find(x=>x.id===id); if(o){o[f]=v; refreshCntStats();} }
+function removeManual(id){ manualOps=manualOps.filter(x=>x.id!==id); renderManualOps(); refreshCntStats(); }
+function clearManualOps(){ manualOps=[]; manualOpIdSeq=0; renderManualOps(); refreshCntStats(); }
+
+// ── Container tab: ZAP sub-panel ──
+function loadZAPChecks(){
+  const list=document.getElementById('zapCheckList');
+  if(!list) return;
+  list.innerHTML=ZAP_SUPPLIERS.map(s=>`
+    <div class="sroute-card" style="margin-bottom:6px">
+      <div class="sroute-top">
+        <input type="checkbox" class="sroute-check" id="zchk${s.id}" onchange="refreshCntStats()">
+        <div class="sup-dot" style="--sup-color:${s.color}"></div>
+        <div style="flex:1">
+          <div style="font-size:.8rem;font-weight:700">${s.name}</div>
+          <div class="sroute-sub"><i class="fas fa-receipt" style="color:#e8b84b;font-size:.7rem"></i> ${s.ocs.join(', ')} · ${s.city}</div>
+        </div>
+      </div>
+      <div class="sroute-inputs">
+        <div><div class="lbl-mini">Volume m³</div>
+          <input type="number" id="zvol${s.id}" value="5" min="0" step="0.5"
+            style="background:#0a1220;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 7px;font-size:.75rem;width:100%"
+            oninput="refreshCntStats()">
+        </div>
+        <div><div class="lbl-mini">Peso KG</div>
+          <input type="number" id="zkg${s.id}" value="1000" min="0" step="100"
+            style="background:#0a1220;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 7px;font-size:.75rem;width:100%"
+            oninput="refreshCntStats()">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Refresh totals bar (Container tab header) ──
+function refreshCntStats(){
+  let totalVol=0, totalKg=0, count=0;
+  // from saved routes (checked)
+  savedRoutes.forEach(r=>{
+    const chk=document.getElementById(`rchk${r.id}`);
+    if(!chk||chk.checked){ totalVol+=r.vol||0; totalKg+=r.kg||0; count++; }
+  });
+  // from manual ops
+  manualOps.forEach(o=>{ totalVol+=o.vol||0; totalKg+=o.kg||0; count++; });
+  // from ZAP checks
+  ZAP_SUPPLIERS.forEach(s=>{
+    const chk=document.getElementById(`zchk${s.id}`);
+    if(chk&&chk.checked){
+      totalVol+=parseFloat(document.getElementById(`zvol${s.id}`)?.value||0);
+      totalKg +=parseFloat(document.getElementById(`zkg${s.id}`)?.value||0);
+      count++;
+    }
+  });
+  const vEl=document.getElementById('ct_vol');
+  const kEl=document.getElementById('ct_kg');
+  const oEl=document.getElementById('ct_ops');
+  if(vEl) vEl.textContent=totalVol.toFixed(1)+' m³';
+  if(kEl) kEl.textContent=totalKg.toLocaleString('pt-BR')+' kg';
+  if(oEl) oEl.textContent=count;
+}
+
+// ── Sub-tab switcher (inside Container tab) ──
+function cntSubTab(name, btn){
+  document.querySelectorAll('.cnt-tab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.cnt-sub-panel').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('csp-'+name).classList.add('on');
+  if(name==='zap'&&document.getElementById('zapCheckList').children.length===0) loadZAPChecks();
+  refreshCntStats();
+}
+
+// ── Main container calculation ──
+function calcContainers(){
+  let totalVol=0, totalKg=0, totalInternalUSD=0;
+  // from saved routes (checked)
+  savedRoutes.forEach(r=>{
+    const chk=document.getElementById(`rchk${r.id}`);
+    if(!chk||chk.checked){ totalVol+=r.vol||0; totalKg+=r.kg||0; totalInternalUSD+=r.costUSD||0; }
+  });
+  // from manual ops
+  manualOps.forEach(o=>{ totalVol+=o.vol||0; totalKg+=o.kg||0; });
+  // from ZAP checks
+  ZAP_SUPPLIERS.forEach(s=>{
+    const chk=document.getElementById(`zchk${s.id}`);
+    if(chk&&chk.checked){
+      totalVol+=parseFloat(document.getElementById(`zvol${s.id}`)?.value||0);
+      totalKg +=parseFloat(document.getElementById(`zkg${s.id}`)?.value||0);
+      const d=haversine(s.lat,s.lng,GUANGZHOU_PORT.lat,GUANGZHOU_PORT.lng)*MODAL_FACTOR['road'];
+      totalInternalUSD+=d*(parseFloat(document.getElementById('rRoad')?.value||0.08))*1.18;
+    }
+  });
+  if(totalVol===0&&totalKg===0){ notify('Adicione operações com volume e peso','err'); return; }
+
+  const usd = parseFloat(document.getElementById('usdBrl')?.value||5.05);
+  const portUSD = (parseFloat(document.getElementById('fThc')?.value||120)+
+                   parseFloat(document.getElementById('fDoc')?.value||55)+
+                   parseFloat(document.getElementById('fSeal')?.value||15));
+  const brokerUSD = (parseFloat(document.getElementById('fBrk')?.value||200)+
+                     parseFloat(document.getElementById('fCert')?.value||40)+
+                     parseFloat(document.getElementById('fInsp')?.value||80)+
+                     parseFloat(document.getElementById('fOther')?.value||50));
+  const freightUSD = {
+    '20gp': parseFloat(document.getElementById('f20gp')?.value||950),
+    '40gp': parseFloat(document.getElementById('f40gp')?.value||1400),
+    '40hc': parseFloat(document.getElementById('f40hc')?.value||1550),
+    '45hc': parseFloat(document.getElementById('f45hc')?.value||1750),
+  };
+
+  document.getElementById('cntGrid').style.display='';
+  document.getElementById('cntDetailSec').style.display='none';
+
+  let bestType=null, bestCostPerCbm=Infinity;
+
+  Object.keys(CNT_SPECS).forEach(t=>{
+    const spec=CNT_SPECS[t];
+    const volPct = totalVol>0?(totalVol/spec.vol)*100:0;
+    const kgPct  = totalKg>0?(totalKg/spec.maxKg)*100:0;
+    const fillPct= Math.max(volPct,kgPct);
+    const isOver = fillPct>100;
+    const needCnt= Math.ceil(fillPct/100)||1;
+
+    const totalCostUSD = freightUSD[t]*needCnt + portUSD*needCnt + brokerUSD + totalInternalUSD;
+    const totalCostBRL = totalCostUSD*usd;
+    const costPerCbm   = totalVol>0?totalCostBRL/totalVol:0;
+
+    const fillEl=document.getElementById(`fill_${t}`);
+    const pctEl =document.getElementById(`pct_${t}`);
+    const costEl=document.getElementById(`cost_${t}`);
+    const subEl =document.getElementById(`costsub_${t}`);
+
+    fillEl.style.width=Math.min(fillPct,100).toFixed(1)+'%';
+    fillEl.className='cnt-fill-inner '+(fillPct>100?'fill-over':fillPct>75?'fill-warn':'fill-ok');
+    pctEl.textContent=fillPct.toFixed(1)+'%';
+    pctEl.className='cnt-pct '+(fillPct>100?'over':fillPct>75?'warn':'ok');
+    costEl.textContent=`R$ ${totalCostBRL.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    subEl.textContent=needCnt>1?`${needCnt} containers necessários`:'';
+
+    const card=document.getElementById(`cntCard_${t}`);
+    card.classList.remove('on','rec','over-limit');
+    if(isOver&&needCnt===1) card.classList.add('over-limit');
+    if(!isOver&&costPerCbm<bestCostPerCbm){ bestCostPerCbm=costPerCbm; bestType=t; }
+
+    card._data={t,spec,fillPct,needCnt,isOver,totalCostBRL,
+      freightBRL:freightUSD[t]*needCnt*usd, portBRL:portUSD*needCnt*usd,
+      brokerBRL:brokerUSD*usd, internalBRL:totalInternalUSD*usd,
+      costPerCbm, freeVol:spec.vol-totalVol, freeKg:spec.maxKg-totalKg,
+      perKg:totalKg>0?totalCostBRL/totalKg:0};
+  });
+
+  if(bestType){ document.getElementById(`cntCard_${bestType}`).classList.add('rec'); selectCnt(bestType); }
+  notify('Containers calculados!','ok');
+}
+
+function selectCnt(type){
+  document.querySelectorAll('.cnt-card').forEach(c=>c.classList.remove('on'));
+  const card=document.getElementById(`cntCard_${type}`);
+  if(!card||!card._data) return;
+  card.classList.add('on'); selCnt=type;
+  const d=card._data, sym='R$';
+  document.getElementById('cntDetailSec').style.display='';
+  document.getElementById('cntDetailName').textContent=CNT_SPECS[type].label+(d.needCnt>1?` × ${d.needCnt} containers`:'');
+  document.getElementById('cdFreight').textContent =fmt(d.freightBRL,sym);
+  document.getElementById('cdPort').textContent    =fmt(d.portBRL,sym);
+  document.getElementById('cdInternal').textContent=fmt(d.internalBRL,sym);
+  document.getElementById('cdBroker').textContent  =fmt(d.brokerBRL,sym);
+  document.getElementById('cdTotal').textContent   =fmt(d.totalCostBRL,sym);
+  document.getElementById('cdPerCbm').textContent  =fmt(d.costPerCbm,sym)+'/m³';
+  document.getElementById('cdPerKg').textContent   =fmt(d.perKg,sym)+'/kg';
+  document.getElementById('cdFree').textContent    =
+    d.freeVol>0?`${d.freeVol.toFixed(1)} m³  ·  ${Math.max(0,d.freeKg).toLocaleString('pt-BR')} kg livres`:'⚠️ Excede capacidade';
+  document.getElementById('cntDetailSec').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function fmt(v,sym){ return `${sym} ${v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`; }
+
+// ─── HISTORY FUNCTIONS ────────────────────────────────────
+
+async function saveConsolidationToHistory(){
+  if(savedRoutes.length===0 || !selCnt){ notify('Adicione rotas e selecione container primeiro','err'); return; }
+
+  const payload = {
+    ref:       currentOp.ref  || 'OP-SEM-REF',
+    description: currentOp.desc || '',
+    oc:        currentOp.oc   || '',
+    container: selCnt,
+    port:      selectedEmbarquePort,
+    routes:    savedRoutes.length,
+    volume:    savedRoutes.reduce((s,r)=>s+(r.vol||0),0),
+    weight:    savedRoutes.reduce((s,r)=>s+(r.weight||0),0),
+    costs: {
+      freight:  document.getElementById('cdFreight')?.textContent  || '—',
+      port:     document.getElementById('cdPort')?.textContent     || '—',
+      internal: document.getElementById('cdInternal')?.textContent || '—',
+      broker:   document.getElementById('cdBroker')?.textContent   || '—',
+      total:    document.getElementById('cdTotal')?.textContent    || '—',
+    },
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/consolidation/history`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error();
+    const saved = await res.json();
+    // atualiza cache local com o id do banco
+    let history = JSON.parse(localStorage.getItem('consolidationHistory') || '[]');
+    history.unshift(saved);
+    localStorage.setItem('consolidationHistory', JSON.stringify(history));
+  } catch {
+    // fallback localStorage
+    const entry = { ...payload, id: Date.now(), date: new Date().toLocaleString('pt-BR'),
+                    desc: payload.description || '—' };
+    let history = JSON.parse(localStorage.getItem('consolidationHistory') || '[]');
+    history.unshift(entry);
+    localStorage.setItem('consolidationHistory', JSON.stringify(history));
+  }
+
+  renderHistoryTab();
+  notify('Consolidação salva no histórico!','ok');
+}
+
+async function renderHistoryTab(){
+  let history;
+  try {
+    const res = await fetch(`${API_BASE}/consolidation/history`);
+    if(!res.ok) throw new Error();
+    history = await res.json();
+    localStorage.setItem('consolidationHistory', JSON.stringify(history));
+  } catch {
+    history = JSON.parse(localStorage.getItem('consolidationHistory') || '[]');
+  }
+  const histDiv = document.getElementById('historyList');
+  if(!histDiv) return;
+
+  if(history.length===0){
+    histDiv.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:.8rem"><i class="fas fa-inbox"></i><br>Nenhuma consolidação salva ainda</div>';
+    return;
+  }
+
+  histDiv.innerHTML = history.map((e,i)=>`
+    <div style="background:#090e18;border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:8px;font-size:.75rem">
+      <div style="display:flex;align-items:start;gap:10px;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <div style="font-weight:700;color:var(--gold)">${e.ref}</div>
+            ${e.oc && e.oc!=='—'?`<span style="background:#e8b84b22;color:#e8b84b;font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:8px;border:1px solid #e8b84b55"><i class="fas fa-receipt"></i> ${e.oc}</span>`:''}
+          </div>
+          <div style="color:var(--muted);font-size:.7rem;margin-bottom:6px">${e.date}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;color:var(--text)">
+            <span><i class="fas fa-cube"></i> ${e.container.toUpperCase()}</span>
+            <span><i class="fas fa-map-marker-alt"></i> ${e.port}</span>
+            <span><i class="fas fa-layer-group"></i> ${e.routes} rota(s)</span>
+            <span><i class="fas fa-archive"></i> ${e.volume.toFixed(1)} m³</span>
+          </div>
+          <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);color:var(--gold);font-weight:700">${e.costs.total}</div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:.65rem;padding:4px 8px;flex-shrink:0" onclick="deleteFromHistory(${e.id})" title="Deletar"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteFromHistory(id){
+  if(!confirm('Deletar esta consolidação do histórico?')) return;
+  try {
+    await fetch(`${API_BASE}/consolidation/history/${id}`, { method:'DELETE' });
+  } catch {}
+  let history = JSON.parse(localStorage.getItem('consolidationHistory') || '[]');
+  history = history.filter(e=>e.id!==id);
+  localStorage.setItem('consolidationHistory', JSON.stringify(history));
+  renderHistoryTab();
+  notify('Consolidação removida do histórico','ok');
+}
+
+async function clearAllHistory(){
+  if(!confirm('Limpar TODO o histórico de consolidações? Esta ação não pode ser desfeita!')) return;
+  try {
+    await fetch(`${API_BASE}/consolidation/history`, { method:'DELETE' });
+  } catch {}
+  localStorage.removeItem('consolidationHistory');
+  renderHistoryTab();
+  notify('Histórico limpo','ok');
+}
+
+// ─── ZAP FUNCTIONS ───────────────────────────────────────
+
+function initZAP(){
+  renderHistoryTab();
+  if(zapInited) return;
+  zapInited=true;
+  // Adiciona marcador do porto destino
+  zapPortMk = L.marker([GUANGZHOU_PORT.lat, GUANGZHOU_PORT.lng],{
+    icon: L.divIcon({
+      className:'',
+      html:`<div style="background:#e8b84b;color:#000;padding:5px 9px;border-radius:6px;
+            font-size:.72rem;font-weight:800;white-space:nowrap;border:2px solid #fff;
+            box-shadow:0 2px 10px rgba(0,0,0,.5)">⚓ Porto GZH Nansha</div>`,
+      iconAnchor:[70,20]
+    })
+  }).addTo(map);
+  zapPortMk.bindPopup(`<b>Porto de Guangzhou Nansha</b><br>Destino final de todas as rotas ZAP`);
+
+  // Adiciona marcadores dos fornecedores
+  ZAP_SUPPLIERS.forEach((s,i)=>{
+    const mk = L.marker([s.lat,s.lng],{
+      icon: L.divIcon({
+        className:'',
+        html:`<div style="background:${s.color};color:#000;padding:4px 8px;border-radius:6px;
+              font-size:.68rem;font-weight:800;white-space:nowrap;border:2px solid rgba(255,255,255,.7);
+              box-shadow:0 2px 8px rgba(0,0,0,.5)">S${i+1} ${s.short}</div>`,
+        iconAnchor:[40,16]
+      })
+    }).addTo(map);
+    mk.bindPopup(`<b>${s.name}</b><br><i class="fas fa-receipt" style="color:#e8b84b;font-size:.7rem"></i> ${s.ocs.join(', ')}<br><small>${s.city}</small>`);
+    zapMarkers.push(mk);
+    zapRoutes.push(null); // placeholder
+  });
+
+  // Foca no mapa para mostrar todos os pontos
+  const allPts = ZAP_SUPPLIERS.map(s=>[s.lat,s.lng]).concat([[GUANGZHOU_PORT.lat,GUANGZHOU_PORT.lng]]);
+  map.fitBounds(L.latLngBounds(allPts).pad(0.12));
+}
+
+function clearZAP(){
+  zapRoutes.forEach(r=>{ if(r){ map.removeLayer(r); }});
+  zapRoutes = ZAP_SUPPLIERS.map(()=>null);
+  // Reset toggles
+  ZAP_SUPPLIERS.forEach((_,i)=>{
+    document.getElementById(`st${i}`)?.classList.remove('on');
+    document.getElementById(`sc${i}`)?.classList.remove('active');
+    document.getElementById(`sd${i}`).textContent='—';
+    document.getElementById(`st${i}t`).textContent='—';
+    document.getElementById(`sc${i}c`).textContent='—';
+  });
+  document.getElementById('zapSummary').style.display='none';
+  notify('Rotas ZAP limpas','ok');
+}
+
+function toggleSupBody(i){
+  const b=document.getElementById(`sb${i}`);
+  b.classList.toggle('show');
+}
+
+function toggleSupRoute(i){
+  if(zapRoutes[i]){
+    map.removeLayer(zapRoutes[i]);
+    zapRoutes[i]=null;
+    document.getElementById(`st${i}`).classList.remove('on');
+    document.getElementById(`sc${i}`).classList.remove('active');
+  } else {
+    drawZAPRoute(i);
+  }
+}
+
+function drawZAPRoute(i){
+  const s = ZAP_SUPPLIERS[i];
+  const url=`https://router.project-osrm.org/route/v1/driving/${s.lng},${s.lat};${GUANGZHOU_PORT.lng},${GUANGZHOU_PORT.lat}?overview=full&geometries=geojson`;
+
+  fetch(url,{signal:AbortSignal.timeout(7000)})
+    .then(r=>r.json())
+    .then(data=>{
+      let pts;
+      if(data.routes&&data.routes[0]){
+        pts=data.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);
+      } else {
+        pts=buildCurve(s.lat,s.lng,GUANGZHOU_PORT.lat,GUANGZHOU_PORT.lng,i);
+      }
+      renderZAPLine(i,pts);
+    })
+    .catch(()=>{
+      const pts=buildCurve(s.lat,s.lng,GUANGZHOU_PORT.lat,GUANGZHOU_PORT.lng,i);
+      renderZAPLine(i,pts);
+    });
+}
+
+function buildCurve(la1,ln1,la2,ln2,idx){
+  const pts=[];
+  const offset=(idx%2===0?1:-1)*1.5;
+  for(let i=0;i<=60;i++){
+    const t=i/60;
+    const la=la1+(la2-la1)*t;
+    const ln=ln1+(ln2-ln1)*t;
+    const crv=Math.sin(t*Math.PI)*offset;
+    pts.push([la+crv,ln]);
+  }
+  return pts;
+}
+
+function renderZAPLine(i,pts){
+  const s=ZAP_SUPPLIERS[i];
+  if(zapRoutes[i]) map.removeLayer(zapRoutes[i]);
+
+  zapRoutes[i]=L.layerGroup([
+    L.polyline(pts,{color:'#000',weight:6,opacity:.2}),
+    L.polyline(pts,{color:s.color,weight:3,opacity:.9,dashArray:null})
+  ]).addTo(map);
+
+  document.getElementById(`st${i}`).classList.add('on');
+  document.getElementById(`sc${i}`).classList.add('active');
+  document.getElementById(`sb${i}`).classList.add('show');
+
+  // Calcula distância e custo
+  const dist = haversine(s.lat,s.lng,GUANGZHOU_PORT.lat,GUANGZHOU_PORT.lng)*MODAL_FACTOR['road'];
+  const usd  = parseFloat(document.getElementById('usdBrl')?.value||5.05);
+  const rate = parseFloat(document.getElementById('rRoad')?.value||0.08);
+  const qty  = parseInt(document.getElementById('cQty')?.value||1);
+  const cost = dist*rate*qty*1.18*usd;
+
+  document.getElementById(`sd${i}`).textContent = `${dist.toFixed(0)} km`;
+  document.getElementById(`st${i}t`).textContent = fmtTime(dist/MODAL_SPEED['road']);
+  document.getElementById(`sc${i}c`).textContent = `R$ ${cost.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+}
+
+function calcAllZAP(){
+  if(!zapInited) initZAP();
+  ZAP_SUPPLIERS.forEach((_,i)=>{
+    if(!zapRoutes[i]) drawZAPRoute(i);
+  });
+
+  // Mostra summary após pequeno delay (aguarda renders)
+  setTimeout(buildZAPSummary, 800);
+  notify('Calculando todas as rotas…','ok');
+}
+
+function buildZAPSummary(){
+  const usd  = parseFloat(document.getElementById('usdBrl')?.value||5.05);
+  const rate = parseFloat(document.getElementById('rRoad')?.value||0.08);
+  const qty  = parseInt(document.getElementById('cQty')?.value||1);
+
+  const rows = ZAP_SUPPLIERS.map(s=>{
+    const dist = haversine(s.lat,s.lng,GUANGZHOU_PORT.lat,GUANGZHOU_PORT.lng)*MODAL_FACTOR['road'];
+    const cost = dist*rate*qty*1.18*usd;
+    return {s,dist,cost};
+  }).sort((a,b)=>a.cost-b.cost);
+
+  document.getElementById('zapTableBody').innerHTML = rows.map((r,rank)=>`
+    <tr>
+      <td><span class="color-dot" style="background:${r.s.color}"></span>${r.s.short}${rank===0?' <b style="color:#3c9;font-size:.68rem">✓ MENOR</b>':''}</td>
+      <td>${r.dist.toFixed(0)}</td>
+      <td>${fmtTime(r.dist/MODAL_SPEED['road'])}</td>
+      <td style="font-weight:700">R$ ${r.cost.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    </tr>`).join('');
+
+  document.getElementById('zapSummary').style.display='block';
+
+  const allPts=ZAP_SUPPLIERS.map(s=>[s.lat,s.lng]).concat([[GUANGZHOU_PORT.lat,GUANGZHOU_PORT.lng]]);
+  map.fitBounds(L.latLngBounds(allPts).pad(0.12));
+}
+
+function notify(msg,type='ok'){
+  document.querySelectorAll('.notif').forEach(n=>n.remove());
+  const n=document.createElement('div');
+  n.className=`notif ${type}`;
+  n.innerHTML=`<i class="fas fa-${type==='ok'?'check-circle':'exclamation-circle'}"></i> ${msg}`;
+  document.body.appendChild(n);
+  setTimeout(()=>n.remove(),3200);
+}
+
+function saveQuote(){
+  notify('Cotação salva! (use Ctrl+P para PDF)','ok');
+}
+
+// ─── EXPORT FUNCTIONS ───────────────────────────────────
+function exportOperationJSON(){
+  if(savedRoutes.length===0){ notify('Adicione rotas à consolidação primeiro','err'); return; }
+
+  const timestamp = new Date().toISOString().split('T')[0];
+  const ref = currentOp.ref || 'OP-001';
+  const filename = `OC-${ref}_${timestamp}.json`;
+
+  const selectedZAPIds = Array.from(document.querySelectorAll('.sroute-check:checked')).map(el=>{
+    const id=parseInt(el.id.replace('zchk',''));
+    return ZAP_SUPPLIERS.find(s=>s.id===id);
+  }).filter(Boolean);
+
+  const totalVol = savedRoutes.reduce((s,r)=>s+parseFloat(r.vol||0),0) +
+                   manualOps.reduce((s,o)=>s+parseFloat(o.vol||0),0) +
+                   selectedZAPIds.reduce((s,z)=>s+parseFloat(z.vol||0),0);
+  const totalKg = savedRoutes.reduce((s,r)=>s+parseFloat(r.kg||0),0) +
+                  manualOps.reduce((s,o)=>s+parseFloat(o.kg||0),0) +
+                  selectedZAPIds.reduce((s,z)=>s+parseFloat(z.kg||0),0);
+
+  const data = {
+    reference: ref,
+    description: currentOp.desc,
+    oc: currentOp.oc,
+    timestamp: timestamp,
+    consolidation: {
+      routes: savedRoutes,
+      manualOps: manualOps,
+      zapSuppliers: selectedZAPIds.map(s=>({id:s.id, name:s.name}))
+    },
+    shipment: {
+      totalVolume: totalVol,
+      totalWeight: totalKg
+    },
+    containerSelection: selCnt ? {
+      type: selCnt,
+      spec: CNT_SPECS[selCnt],
+      costs: document.getElementById(`cntCard_${selCnt}`)?._data || null
+    } : null
+  };
+
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  notify(`Operação exportada: ${filename}`,'ok');
+}
+
+function generateOperationPDF(){
+  if(savedRoutes.length===0){ notify('Adicione rotas à consolidação primeiro','err'); return; }
+  if(!selCnt){ notify('Selecione um container primeiro','err'); return; }
+
+  const timestamp = new Date().toISOString().split('T')[0];
+  const ref = currentOp.ref || 'OP-001';
+  const filename = `OC-${ref}_${timestamp}.pdf`;
+
+  notify('Gerando PDF...','ok');
+
+  setTimeout(async()=>{
+    try{
+      const {jsPDF}=window.jspdf;
+      const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+      let yPos = 15;
+
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 10;
+      const maxWidth = pageWidth - 2*margin;
+
+      doc.setFont('Helvetica','bold');
+      doc.setFontSize(14);
+      doc.setTextColor(232,184,75);
+      doc.text('OPERAÇÃO DE CONSOLIDAÇÃO',margin,yPos);
+      yPos+=8;
+
+      doc.setFont('Helvetica','normal');
+      doc.setFontSize(10);
+      doc.setTextColor(0,0,0);
+      doc.text(`Referência: ${ref}`,margin,yPos);
+      yPos+=5;
+      if(currentOp.oc){
+        doc.text(`Ordem de Compra: ${currentOp.oc}`,margin,yPos);
+        yPos+=5;
+      }
+      doc.text(`Data: ${timestamp}`,margin,yPos);
+      yPos+=5;
+      if(currentOp.desc){
+        doc.text(`Descrição: ${currentOp.desc}`,margin,yPos);
+        yPos+=5;
+      }
+      yPos+=3;
+
+      doc.setFont('Helvetica','bold');
+      doc.setFontSize(11);
+      doc.text('ROTAS CONSOLIDADAS',margin,yPos);
+      yPos+=6;
+
+      doc.setFont('Helvetica','normal');
+      doc.setFontSize(9);
+      savedRoutes.forEach(route=>{
+        if(yPos>pageHeight-30){
+          doc.addPage();
+          yPos=15;
+        }
+        const routeText = `${route.ori} → ${route.dst} | ${route.dist} | ${route.mod} | $${fmt(route.costUSD,'').replace('$','')}`;
+        doc.text(routeText,margin,yPos);
+        yPos+=5;
+      });
+      yPos+=3;
+
+      doc.setFont('Helvetica','bold');
+      doc.setFontSize(11);
+      doc.text('CONTAINER SELECIONADO',margin,yPos);
+      yPos+=6;
+
+      doc.setFont('Helvetica','normal');
+      doc.setFontSize(9);
+      const cntCard = document.getElementById(`cntCard_${selCnt}`);
+      const cntData = cntCard?._data;
+      if(cntData){
+        doc.text(`Tipo: ${CNT_SPECS[selCnt].label}`,margin,yPos);
+        yPos+=5;
+        doc.text(`Volume: ${CNT_SPECS[selCnt].vol} m³ | Peso Máx: ${CNT_SPECS[selCnt].maxKg} kg`,margin,yPos);
+        yPos+=5;
+        doc.text(`Frete Marítimo: R$ ${fmt(cntData.freightBRL,'').replace('R$ ','')}`,margin,yPos);
+        yPos+=5;
+        doc.text(`THC + Doc + Seal: R$ ${fmt(cntData.portBRL,'').replace('R$ ','')}`,margin,yPos);
+        yPos+=5;
+        doc.text(`Frete Interno: R$ ${fmt(cntData.internalBRL,'').replace('R$ ','')}`,margin,yPos);
+        yPos+=5;
+        doc.text(`Despachante/Docs: R$ ${fmt(cntData.brokerBRL,'').replace('R$ ','')}`,margin,yPos);
+        yPos+=5;
+        doc.setFont('Helvetica','bold');
+        doc.text(`TOTAL: R$ ${fmt(cntData.totalCostBRL,'').replace('R$ ','')}`,margin,yPos);
+        yPos+=5;
+        doc.setFont('Helvetica','normal');
+        doc.text(`Custo/m³: R$ ${fmt(cntData.costPerCbm,'').replace('R$ ','')} | Custo/kg: R$ ${fmt(cntData.perKg,'').replace('R$ ','')}`,margin,yPos);
+      }
+      yPos+=8;
+
+      if(yPos>pageHeight-50){
+        doc.addPage();
+        yPos=15;
+      }
+
+      doc.setFont('Helvetica','bold');
+      doc.setFontSize(11);
+      doc.text('MAPA DE TRAJETO',margin,yPos);
+      yPos+=6;
+
+      try{
+        const mapCanvas = await html2canvas(document.getElementById('map'),{scale:1.5});
+        const mapImg = mapCanvas.toDataURL('image/png');
+        const mapWidth = 190;
+        const mapHeight = (mapCanvas.height/mapCanvas.width)*mapWidth;
+        if(yPos+mapHeight<=pageHeight-10){
+          doc.addImage(mapImg,'PNG',margin,yPos,mapWidth,mapHeight);
+        } else {
+          doc.addPage();
+          doc.addImage(mapImg,'PNG',margin,15,mapWidth,Math.min(mapHeight,pageHeight-30));
+        }
+      } catch(e){
+        doc.setFont('Helvetica','normal');
+        doc.setFontSize(9);
+        doc.text('(Mapa não disponível para captura)',margin,yPos);
+      }
+
+      doc.save(filename);
+      notify(`PDF gerado: ${filename}`,'ok');
+    } catch(e){
+      console.error('PDF generation error:',e);
+      notify('Erro ao gerar PDF','err');
+    }
+  },100);
+}
+
+// ─── PORT SELECTION ─────────────────────────────────────
+function changeEmbarquePort(portName){
+  selectedEmbarquePort = portName;
+  updateFreightRates();
+  refreshCntStats();
+  renderPortComparison();
+  notify(`Porto alterado para: ${portName}`,'ok');
+}
+
+function updateFreightRates(){
+  const rates = PORT_FREIGHT_RATES[selectedEmbarquePort] || PORT_FREIGHT_RATES['Guangzhou / Nansha'];
+  document.getElementById('f20gp').value = rates['20gp'];
+  document.getElementById('f40gp').value = rates['40gp'];
+  document.getElementById('f40hc').value = rates['40hc'];
+  document.getElementById('f45hc').value = rates['45hc'];
+
+  const portInfo = PORT_TEU[selectedEmbarquePort] || {tier:2, rank:'Porto'};
+  const tierText = {1:'Tier 1 - Porto Classe A',2:'Tier 2 - Porto Classe B',3:'Tier 3 - Porto Regional'}[portInfo.tier];
+  document.getElementById('portRank').innerHTML = `<strong>${tierText}</strong> — ${portInfo.rank}`;
+}
+
+function renderPortComparison(){
+  const mainPorts = ['Shanghai', 'Guangzhou / Nansha', 'Shenzhen / Yantian', 'Xiamen'];
+  const containerType = '40gp';
+
+  let html = '<div style="margin-top:12px;font-size:.72rem"><strong>Comparativo de Portos (40\' GP):</strong><br>';
+  html += '<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">';
+
+  mainPorts.forEach(port=>{
+    const rate = PORT_FREIGHT_RATES[port]?.[containerType] || 0;
+    const isSelected = port === selectedEmbarquePort;
+    const diff = rate - PORT_FREIGHT_RATES['Guangzhou / Nansha']?.[containerType];
+    const marker = isSelected ? '✓ ' : '';
+    const diffText = diff > 0 ? `+$${diff}` : diff < 0 ? `-$${Math.abs(diff)}` : 'base';
+    const color = isSelected ? 'var(--gold)' : 'var(--muted)';
+
+    html += `<div style="display:flex;justify-content:space-between;padding:4px 6px;background:${isSelected?'rgba(232,184,75,.1)':'transparent'};border-radius:4px;color:${color}">
+      <span>${marker}${port}</span>
+      <span style="font-weight:600">$${rate} <span style="font-size:.65rem;color:var(--muted)">(${diffText})</span></span>
+    </div>`;
+  });
+
+  html += '</div></div>';
+
+  const sec = document.querySelector('.freight-rates').parentElement;
+  let compDiv = sec.querySelector('#portCompare');
+  if(!compDiv){
+    compDiv = document.createElement('div');
+    compDiv.id = 'portCompare';
+    sec.appendChild(compDiv);
+  }
+  compDiv.innerHTML = html;
+}
+
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('overlay')) e.target.classList.remove('show');
+});
+
+// Initialize port display on load
+window.addEventListener('load',()=>{
+  updateFreightRates();
+  renderPortComparison();
+});
+
+// ─── CSV IMPORT FUNCTIONS ───────────────────────────────
+let csvData = null;
+let currentSupplierIdx = 0;
+let parsedSuppliers = [];
+
+function importCSV(){
+  const fileInput = document.getElementById('csvFile');
+  if(!fileInput.files.length){ notify('Selecione um arquivo CSV','err'); return; }
+
+  const file = fileInput.files[0];
+  Papa.parse(file, {
+    header: false,
+    complete:(results)=>{
+      csvData = results.data;
+      parsedSuppliers = extractSuppliersFromCSV(csvData);
+
+      if(parsedSuppliers.length===0){ notify('Nenhum fornecedor encontrado no CSV','err'); return; }
+
+      currentSupplierIdx = 0;
+      loadSupplier(0);
+      document.getElementById('supplierNav').style.display='';
+      document.getElementById('csvStatus').style.display='';
+      document.getElementById('csvStatus').textContent = `✓ ${parsedSuppliers.length} fornecedor(es) importado(s)`;
+      notify(`CSV importado: ${parsedSuppliers.length} fornecedor(es)`,'ok');
+    },
+    error:(err)=>{
+      notify(`Erro ao ler CSV: ${err.message}`,'err');
+    }
+  });
+}
+
+function extractSuppliersFromCSV(data){
+  const suppliers = [];
+  if(!data || data.length < 62) return suppliers;
+
+  // Supplier columns typically start at index 3 (after empty/header columns)
+  // Based on CSV: columns 3-7 are Supplier 1-5
+  for(let col=3; col<=7; col++){
+    const supplier = extractSupplierData(data, col);
+    if(supplier.ocs.length > 0) suppliers.push(supplier);
+  }
+
+  return suppliers;
+}
+
+function extractSupplierData(data, colIdx){
+  const supplier = {
+    name: '',
+    ocs: [],
+    origin: '',
+    destination: 'Santos, Brasil',
+    items: [],
+    weight: 0,
+    cbm: 0,
+    value: 0,
+    containers: 0
+  };
+
+  // Extract company name & OCs (Row 8-24, typically 8-12)
+  let companyText = '';
+  for(let row=7; row<=25; row++){
+    if(data[row] && data[row][colIdx]) companyText += ' ' + data[row][colIdx];
+  }
+  supplier.name = companyText.trim().split('\n')[0].substring(0,80);
+
+  // Extract OCs
+  const ocMatches = companyText.match(/OC\s+(\d{4,5})/g) || [];
+  supplier.ocs = ocMatches.map(oc=>oc.trim());
+
+  // Extract origin from address (Row 28)
+  const addressText = (data[27] && data[27][colIdx]) ? String(data[27][colIdx]).toLowerCase() : '';
+  const cities = ['foshan','huzhou','wenzhou','liaocheng','dongguan','shanghai','shenzhen','hangzhou','ningbo','tianjin','qingdao','xiamen','dalian'];
+  for(const city of cities){
+    if(addressText.includes(city)){
+      supplier.origin = capitalizeCity(city);
+      break;
+    }
+  }
+
+  // Extract items from SHIPPING MARK (Row 44-54)
+  const itemText = [];
+  for(let row=43; row<=54; row++){
+    if(data[row] && data[row][colIdx]){
+      const cell = String(data[row][colIdx]).trim();
+      if(cell && cell.length > 5) itemText.push(cell);
+    }
+  }
+  supplier.items = itemText.filter(t=>t.length>0).map((t,i)=>({
+    id: i+1,
+    desc: t.substring(0,200),
+    qty: 1,
+    unit: 'UN',
+    usd: 0
+  }));
+
+  // Extract quantities (Row 59-62)
+  const ctnRow = data[58] && data[58][colIdx] ? String(data[58][colIdx]).trim() : '0';
+  const gwRow = data[59] && data[59][colIdx] ? String(data[59][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
+  const cbmRow = data[60] && data[60][colIdx] ? String(data[60][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
+  const valRow = data[61] && data[61][colIdx] ? String(data[61][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
+
+  supplier.containers = parseInt(ctnRow) || 0;
+  supplier.weight = parseFloat(gwRow) || 0;
+  supplier.cbm = parseFloat(cbmRow) || 0;
+  supplier.value = parseFloat(valRow) || 0;
+
+  return supplier;
+}
+
+function capitalizeCity(city){
+  const cityMap = {
+    'foshan':'Foshan','huzhou':'Huzhou','wenzhou':'Wenzhou','liaocheng':'Liaocheng',
+    'dongguan':'Dongguan','shanghai':'Shanghai','shenzhen':'Shenzhen','hangzhou':'Hangzhou',
+    'ningbo':'Ningbo','tianjin':'Tianjin','qingdao':'Qingdao','xiamen':'Xiamen','dalian':'Dalian'
+  };
+  return cityMap[city] || city;
+}
+
+function navigateSupplier(dir){
+  const newIdx = currentSupplierIdx + dir;
+  if(newIdx >= 0 && newIdx < parsedSuppliers.length){
+    currentSupplierIdx = newIdx;
+    loadSupplier(newIdx);
+  }
+}
+
+function loadSupplier(idx){
+  if(idx < 0 || idx >= parsedSuppliers.length) return;
+
+  const sup = parsedSuppliers[idx];
+
+  // Update navigation display
+  document.getElementById('currentSupplier').textContent = (idx+1);
+  document.getElementById('totalSuppliers').textContent = parsedSuppliers.length;
+  document.getElementById('supplierName').textContent = sup.name.substring(0,60);
+  document.getElementById('prevSupBtn').style.display = idx > 0 ? '' : 'none';
+  document.getElementById('nextSupBtn').textContent = idx < parsedSuppliers.length-1 ? '<i class="fas fa-chevron-right"></i> Próximo' : '<i class="fas fa-check"></i> Concluído';
+
+  // Fill form
+  document.getElementById('opRef').value = sup.ocs.join(', ');
+  document.getElementById('opDesc').value = sup.name;
+  document.getElementById('oriIn').value = sup.origin || '';
+  document.getElementById('dstIn').value = sup.destination;
+
+  // Load items
+  currentOp.items = sup.items.map((item,i)=>({...item, id:i+1}));
+  itemIdSeq = currentOp.items.length;
+  renderItems();
+
+  updateOpRef();
+  notify(`Fornecedor ${idx+1} carregado: ${sup.ocs.join(', ')}`,'ok');
+}
+
+function toggleCSVDebug(){
+  const debugDiv = document.getElementById('csvDebug');
+  const fileInput = document.getElementById('csvFile');
+
+  if(!csvData || csvData.length === 0){
+    notify('Importe um CSV primeiro','err');
+    return;
+  }
+
+  if(debugDiv.style.display === 'none'){
+    // Show debug
+    let html = '<div style="margin-bottom:12px"><strong>Estrutura do CSV (Linha x Coluna: Valor)</strong></div>';
+
+    // Show first 15 rows and columns 0-8
+    for(let row=0; row<Math.min(csvData.length, 65); row++){
+      const rowData = csvData[row] || [];
+      for(let col=0; col<Math.min(rowData.length, 9); col++){
+        const val = rowData[col] ? String(rowData[col]).trim() : '';
+        if(val.length > 0){
+          const preview = val.length > 50 ? val.substring(0,47)+'...' : val;
+          html += `<div style="margin:2px 0;color:#7aa;"><span style="color:#a77;">R${row}</span> <span style="color:#7a7;">C${col}</span>: ${escapeHtml(preview)}</div>`;
+        }
+      }
+    }
+
+    debugDiv.innerHTML = html;
+    debugDiv.style.display = 'block';
+    notify('Estrutura do CSV exibida. Procure pelos dados esperados.','info');
+  } else {
+    debugDiv.style.display = 'none';
+  }
+}
+
+function escapeHtml(text){
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function resizeSidebar(width){
+  const w = parseInt(width);
+  document.documentElement.style.setProperty('--sidebar-width', w + 'px');
+  document.getElementById('sidebarWidthLabel').textContent = w + 'px';
+  localStorage.setItem('sidebarWidth', w);
+}
+
+// Restore sidebar width from localStorage
+window.addEventListener('load', ()=>{
+  const saved = localStorage.getItem('sidebarWidth');
+  if(saved){
+    const w = parseInt(saved);
+    document.documentElement.style.setProperty('--sidebar-width', w + 'px');
+    document.getElementById('sidebarWidthLabel').textContent = w + 'px';
+    document.querySelector('#sidebarResize input[type="range"]').value = w;
+  }
+});
+
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('overlay')) e.target.classList.remove('show');
+});
+</script>
+</body>
+</html>

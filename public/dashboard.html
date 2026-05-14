@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKTZ ERP — Dashboard</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="/images/logo.svg" alt="OKTZ" class="sidebar-logo-img">
+      <div class="sub">Setor de Importação</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a class="nav-item" data-page="dashboard" href="/dashboard">🏠 Dashboard</a>
+      <div class="nav-section">Módulos</div>
+      <a class="nav-item" data-page="suppliers" href="/suppliers">🏭 Fornecedores</a>
+      <a class="nav-item" data-page="payments" href="/payments">💳 Pagamentos</a>
+      <a class="nav-item" data-page="customs" href="/customs">🚢 Desembaraço</a>
+      <a class="nav-item" data-page="notifications" href="/notifications">📲 Notificações</a>
+      <div class="nav-section" id="nav-admin-section" style="display:none">Admin</div>
+      <a class="nav-item hidden" id="nav-users" data-page="users" href="/users">👥 Usuários</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-name" id="sidebar-user-name">—</div>
+      <div class="user-role" id="sidebar-user-role">—</div>
+      <div class="logout-btn" id="logout-btn">⬡ Sair do sistema</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="top-header">
+      <span class="page-title">Dashboard</span>
+      <div class="header-actions">
+        <span id="header-date" class="text-muted text-sm"></span>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Stats -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-icon blue">🏭</div><div><div class="stat-value" id="s-suppliers">—</div><div class="stat-label">Fornecedores Ativos</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">💳</div><div><div class="stat-value" id="s-payments-pending">—</div><div class="stat-label">Pagamentos Pendentes</div></div></div>
+        <div class="stat-card"><div class="stat-icon red">⚠️</div><div><div class="stat-value" id="s-payments-overdue">—</div><div class="stat-label">Pagamentos Vencidos</div></div></div>
+        <div class="stat-card"><div class="stat-icon teal">🚢</div><div><div class="stat-value" id="s-customs-active">—</div><div class="stat-label">Processos em Andamento</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">💵</div><div><div class="stat-value currency" id="s-pending-usd">—</div><div class="stat-label">A Pagar (USD)</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">💰</div><div><div class="stat-value currency" id="s-total-invested">—</div><div class="stat-label">Total Importado (BRL)</div></div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+        <!-- Próximos vencimentos -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">⏰ Próximos Vencimentos</span>
+            <a href="/payments" class="btn btn-ghost btn-sm">Ver todos</a>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fornecedor</th><th>Valor</th><th>Vencimento</th><th>Status</th></tr></thead>
+              <tbody id="upcoming-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Processos aduaneiros -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🚢 Processos Ativos</span>
+            <a href="/customs" class="btn btn-ghost btn-sm">Ver todos</a>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Processo</th><th>Produto</th><th>Status</th></tr></thead>
+              <tbody id="customs-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Últimas notificações -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <span class="card-title">📬 Últimas Notificações</span>
+          <a href="/notifications" class="btn btn-ghost btn-sm">Ver todas</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tipo</th><th>Destinatário</th><th>Assunto/Mensagem</th><th>Status</th><th>Enviado</th></tr></thead>
+            <tbody id="notif-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+Auth.requireAuth();
+initSidebar('dashboard');
+
+if (Auth.hasRole('admin')) {
+  document.getElementById('nav-admin-section').style.display = '';
+  document.getElementById('nav-users').classList.remove('hidden');
+}
+
+document.getElementById('header-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+// Check must change password
+const params = new URLSearchParams(location.search);
+if (params.get('changePassword') === '1') {
+  showToast('Você deve alterar sua senha antes de continuar.', 'warning', 8000);
+}
+
+async function loadDashboard() {
+  try {
+    const [suppliersRes, paymentSummary, customsStats, notifRes, upcomingRes, customsActiveRes] = await Promise.all([
+      API.get('/api/suppliers?status=active'),
+      API.get('/api/payments/summary'),
+      API.get('/api/customs/stats'),
+      API.get('/api/notifications?limit=5'),
+      API.get('/api/payments?status=pending'),
+      API.get('/api/customs?status=in_progress'),
+    ]);
+
+    // Stats
+    document.getElementById('s-suppliers').textContent = suppliersRes.suppliers.length;
+    document.getElementById('s-payments-pending').textContent = paymentSummary.pending || 0;
+    document.getElementById('s-payments-overdue').textContent = paymentSummary.overdue || 0;
+    document.getElementById('s-customs-active').textContent = customsStats.in_progress || 0;
+    document.getElementById('s-pending-usd').textContent = fmtUSD(paymentSummary.pending_usd || 0);
+    document.getElementById('s-total-invested').textContent = fmtBRL(customsStats.total_invested || 0);
+
+    // Upcoming payments
+    const upTbody = document.getElementById('upcoming-tbody');
+    const upcoming = (upcomingRes.payments || []).slice(0, 6);
+    if (!upcoming.length) {
+      upTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted" style="padding:20px">Nenhum vencimento próximo</td></tr>`;
+    } else {
+      upTbody.innerHTML = upcoming.map(p => {
+        const due = new Date(p.due_date + 'T12:00:00');
+        const today = new Date(); today.setHours(0,0,0,0);
+        const overdue = due < today;
+        return `<tr>
+          <td>${p.supplier_name || '—'}</td>
+          <td class="currency">${fmtCurrency(p.amount, p.currency)}</td>
+          <td style="color:${overdue ? 'var(--danger)' : 'inherit'}">${fmtDate(p.due_date)}</td>
+          <td>${badge(p.status)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Active customs
+    const cusTbody = document.getElementById('customs-tbody');
+    const active = customsActiveRes.processes || [];
+    if (!active.length) {
+      cusTbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted" style="padding:20px">Nenhum processo ativo</td></tr>`;
+    } else {
+      cusTbody.innerHTML = active.slice(0, 6).map(p => `<tr>
+        <td><strong>${p.process_number}</strong></td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.product_description}">${p.product_description}</td>
+        <td>${badge(p.status)}</td>
+      </tr>`).join('');
+    }
+
+    // Notifications
+    const nTbody = document.getElementById('notif-tbody');
+    const notifs = notifRes.notifications || [];
+    if (!notifs.length) {
+      nTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px">Nenhuma notificação</td></tr>`;
+    } else {
+      nTbody.innerHTML = notifs.map(n => `<tr>
+        <td>${n.type === 'whatsapp' ? '📱 WhatsApp' : '📧 Email'}</td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.recipient}</td>
+        <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.subject || n.message}</td>
+        <td>${badge(n.status)}</td>
+        <td class="text-muted">${fmtRelative(n.sent_at || n.created_at)}</td>
+      </tr>`).join('');
+    }
+  } catch (err) {
+    showToast('Erro ao carregar dashboard: ' + err.message, 'error');
+  }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

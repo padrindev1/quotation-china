@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKTZ ERP — Usuários</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img src="/images/logo.svg" alt="OKTZ" class="sidebar-logo-img"><div class="sub">Setor de Importação</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a class="nav-item" data-page="dashboard" href="/dashboard">🏠 Dashboard</a>
+      <div class="nav-section">Módulos</div>
+      <a class="nav-item" data-page="suppliers" href="/suppliers">🏭 Fornecedores</a>
+      <a class="nav-item" data-page="payments" href="/payments">💳 Pagamentos</a>
+      <a class="nav-item" data-page="customs" href="/customs">🚢 Desembaraço</a>
+      <a class="nav-item" data-page="notifications" href="/notifications">📲 Notificações</a>
+      <div class="nav-section">Admin</div>
+      <a class="nav-item" data-page="users" href="/users">👥 Usuários</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-name" id="sidebar-user-name">—</div>
+      <div class="user-role" id="sidebar-user-role">—</div>
+      <div class="logout-btn" id="logout-btn">⬡ Sair do sistema</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top-header">
+      <span class="page-title">👥 Gestão de Usuários</span>
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" id="btn-audit-logs">📋 Logs de Auditoria</button>
+        <button class="btn btn-primary btn-sm" id="btn-new-user">+ Novo Usuário</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="alert alert-warning mb-4">
+        <i>🔒</i><span>Área restrita a administradores. Gerencie usuários e permissões com cuidado.</span>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nome</th><th>Email</th><th>Departamento</th><th>Perfil</th><th>WhatsApp</th><th>Status</th><th>Último Acesso</th><th>Ações</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo/Editar Usuário -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="user-modal-title">Novo Usuário</span>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="user-form">
+        <input type="hidden" name="id">
+        <div class="form-row cols-2">
+          <div class="form-group"><label>Nome <span class="required">*</span></label><input name="name" required maxlength="200"></div>
+          <div class="form-group"><label>Email <span class="required">*</span></label><input name="email" type="email" required id="user-email-field"></div>
+        </div>
+        <div id="password-fields">
+          <div class="form-row cols-2">
+            <div class="form-group">
+              <label>Senha <span class="required">*</span></label>
+              <input name="password" type="password" id="user-password" autocomplete="new-password">
+              <div class="form-hint">Mín. 8 chars, maiúscula, número e símbolo (@$!%*?&#)</div>
+            </div>
+            <div class="form-group"><label>Departamento</label><input name="department" placeholder="Ex: Importação, Financeiro"></div>
+          </div>
+        </div>
+        <div class="form-row cols-2" id="edit-only-fields" style="display:none">
+          <div class="form-group"><label>Departamento</label><input name="department_edit" placeholder="Ex: Importação, Financeiro"></div>
+          <div class="form-group"><label>Status</label>
+            <select name="is_active"><option value="1">Ativo</option><option value="0">Inativo</option></select>
+          </div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group"><label>Perfil de Acesso <span class="required">*</span></label>
+            <select name="role">
+              <option value="viewer">Visualizador — somente leitura</option>
+              <option value="operator">Operador — pode criar registros</option>
+              <option value="manager">Gerente — pode aprovar e enviar emails</option>
+              <option value="admin">Administrador — acesso total</option>
+            </select>
+          </div>
+          <div class="form-group"><label>WhatsApp</label><input name="whatsapp_number" placeholder="+5511999999999"><div class="form-hint">Para receber notificações</div></div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-user')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-user">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Audit Logs -->
+<div class="modal-overlay" id="modal-audit">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">📋 Logs de Auditoria</span>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Usuário</th><th>Ação</th><th>Recurso</th><th>ID</th><th>IP</th><th>Data/Hora</th></tr></thead>
+          <tbody id="audit-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-audit')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+Auth.requireAuth();
+if (!Auth.hasRole('admin')) { window.location.href = '/dashboard'; }
+initSidebar('users');
+
+let editingUserId = null;
+
+async function loadUsers() {
+  tableLoading('users-tbody');
+  try {
+    const res = await API.get('/api/users');
+    const tbody = document.getElementById('users-tbody');
+    const currentUser = Auth.getUser();
+    if (!res.users.length) { tableEmpty('users-tbody', 'Nenhum usuário encontrado', 8); return; }
+    tbody.innerHTML = res.users.map(u => `<tr>
+      <td><strong>${u.name}</strong>${u.id === currentUser?.id ? ' <span class="badge badge-info" style="font-size:10px">Você</span>' : ''}</td>
+      <td>${u.email}</td>
+      <td>${u.department || '—'}</td>
+      <td>${badge(u.role)}</td>
+      <td class="text-muted text-sm">${u.whatsapp_number || '—'}</td>
+      <td>${u.is_active ? badge('active') : badge('inactive')}</td>
+      <td class="text-muted text-sm">${u.last_login ? fmtDateTime(u.last_login) : 'Nunca'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="editUser(${JSON.stringify(u).replace(/"/g,'&quot;')})">✏️</button>
+        <button class="btn btn-outline btn-sm" onclick="resetPassword(${u.id}, '${u.name.replace(/'/g,"\\'")}')">🔑</button>
+      </td>
+    </tr>`).join('');
+  } catch (err) { showToast('Erro: ' + err.message, 'error'); }
+}
+
+document.getElementById('btn-new-user').addEventListener('click', () => {
+  editingUserId = null;
+  document.getElementById('user-modal-title').textContent = 'Novo Usuário';
+  clearForm(document.getElementById('user-form'));
+  document.getElementById('password-fields').style.display = '';
+  document.getElementById('edit-only-fields').style.display = 'none';
+  document.getElementById('user-email-field').disabled = false;
+  document.getElementById('user-password').required = true;
+  openModal('modal-user');
+});
+
+function editUser(u) {
+  editingUserId = u.id;
+  document.getElementById('user-modal-title').textContent = 'Editar Usuário';
+  clearForm(document.getElementById('user-form'));
+  document.getElementById('password-fields').style.display = 'none';
+  document.getElementById('edit-only-fields').style.display = '';
+  document.getElementById('user-email-field').disabled = true;
+  document.getElementById('user-password').required = false;
+  const form = document.getElementById('user-form');
+  form.elements.name.value = u.name;
+  form.elements.email.value = u.email;
+  form.elements.role.value = u.role;
+  form.elements.whatsapp_number.value = u.whatsapp_number || '';
+  form.elements.department_edit.value = u.department || '';
+  form.elements.is_active.value = u.is_active ? '1' : '0';
+  openModal('modal-user');
+}
+
+document.getElementById('btn-save-user').addEventListener('click', async () => {
+  const form = document.getElementById('user-form');
+  const data = getFormData(form);
+  try {
+    if (editingUserId) {
+      await API.put(`/api/users/${editingUserId}`, {
+        name: data.name, role: data.role,
+        department: data.department_edit,
+        whatsapp_number: data.whatsapp_number,
+        is_active: parseInt(data.is_active),
+      });
+      showToast('Usuário atualizado!');
+    } else {
+      await API.post('/api/users', { name: data.name, email: data.email, password: data.password, role: data.role, department: data.department, whatsapp_number: data.whatsapp_number });
+      showToast('Usuário criado! Ele deverá alterar a senha no primeiro acesso.');
+    }
+    closeModal('modal-user');
+    loadUsers();
+  } catch (err) {
+    showToast(err.message, 'error');
+    if (err.details) showFieldErrors(err.details);
+  }
+});
+
+async function resetPassword(id, name) {
+  if (!confirmAction(`Resetar senha de "${name}"? Uma senha temporária será gerada.`)) return;
+  try {
+    const res = await API.post(`/api/users/${id}/reset-password`);
+    alert(`Senha temporária para ${name}:\n\n${res.temporaryPassword}\n\nO usuário deverá alterar no próximo acesso.`);
+    showToast('Senha resetada!');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+document.getElementById('btn-audit-logs').addEventListener('click', async () => {
+  tableLoading('audit-tbody');
+  openModal('modal-audit');
+  try {
+    const res = await API.get('/api/users/audit-logs?limit=200');
+    const tbody = document.getElementById('audit-tbody');
+    if (!res.logs.length) { tableEmpty('audit-tbody', 'Nenhum log encontrado', 6); return; }
+    const actionLabels = { CREATE: '➕ Criou', UPDATE: '✏️ Editou', UPDATE_STATUS: '🔄 Status', DELETE: '🗑 Excluiu' };
+    tbody.innerHTML = res.logs.map(l => `<tr>
+      <td>${l.user_name || '—'}</td>
+      <td>${actionLabels[l.action] || l.action}</td>
+      <td>${l.resource}</td>
+      <td class="text-muted">${l.resource_id || '—'}</td>
+      <td class="text-muted text-sm">${l.ip_address || '—'}</td>
+      <td class="text-muted text-sm">${fmtDateTime(l.created_at)}</td>
+    </tr>`).join('');
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+loadUsers();
+</script>
+</body>
+</html>
