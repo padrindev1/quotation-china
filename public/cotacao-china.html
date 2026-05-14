@@ -216,6 +216,48 @@ select option{background:#111c2b}
 .summary-table td{padding:5px 8px;border-bottom:1px solid var(--border)}
 .summary-table tr:hover td{background:rgba(255,255,255,.03)}
 .color-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+/* ── EXCHANGE RATE WIDGET ── */
+.xrate-widget{display:flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(13,21,32,.85);border:1px solid var(--border);border-radius:6px;font-size:.7rem;cursor:pointer;white-space:nowrap;transition:.2s}
+.xrate-widget:hover{border-color:var(--gold)}
+.xrate-val{color:var(--gold);font-weight:700}
+.xrate-time{color:var(--muted);font-size:.62rem}
+.xrate-dot{width:6px;height:6px;border-radius:50%;background:#3c9;flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* ── TRANSIT TIMELINE ── */
+.transit-row{display:flex;align-items:stretch;margin-bottom:10px;font-size:.72rem}
+.transit-step{flex:1;padding:7px 6px;background:#090e18;border:1px solid var(--border);text-align:center;position:relative}
+.transit-step:first-child{border-radius:6px 0 0 6px}
+.transit-step:last-child{border-radius:0 6px 6px 0}
+.transit-arrow{display:flex;align-items:center;color:#2a4060;font-size:.75rem;padding:0 2px;flex-shrink:0}
+.transit-days{font-size:.88rem;font-weight:800;color:var(--gold);display:block;margin-bottom:1px}
+.transit-lbl{color:var(--muted);font-size:.6rem;line-height:1.3}
+.transit-icon{font-size:.9rem;display:block;margin-bottom:2px}
+.transit-total-bar{background:linear-gradient(135deg,rgba(232,184,75,.1),rgba(232,184,75,.03));border:1px solid rgba(232,184,75,.3);border-radius:7px;padding:10px 13px;margin-top:8px}
+.transit-total-row{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;padding:3px 0;border-bottom:1px solid rgba(232,184,75,.1)}
+.transit-total-row:last-child{border:none;font-weight:800;font-size:.9rem;margin-top:4px}
+/* ── OP ROUTE CARDS ── */
+.op-route-card{background:#090e18;border:1px solid var(--border);border-radius:7px;padding:9px 11px;margin-bottom:7px}
+.op-route-card:hover{border-color:#2a4060}
+.op-route-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.op-route-path{font-size:.78rem;font-weight:700;flex:1;line-height:1.4}
+.op-route-sub{font-size:.68rem;color:var(--muted)}
+.op-route-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.op-route-transit{display:flex;gap:6px;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--border)}
+.transit-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:12px;font-size:.65rem;font-weight:600;background:#0f1923;border:1px solid var(--border)}
+.transit-pill.internal{border-color:#4ecdc4;color:#4ecdc4}
+.transit-pill.port{border-color:#f39c12;color:#f39c12}
+.transit-pill.maritime{border-color:#a29bfe;color:#a29bfe}
+.transit-pill.total{border-color:var(--gold);color:var(--gold);font-size:.68rem}
+/* ── VESSEL SEARCH ── */
+.vessel-card{background:#090e18;border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:8px}
+.vessel-card-name{font-size:.88rem;font-weight:700;color:#fff;margin-bottom:2px}
+.vessel-card-flag{font-size:.72rem;color:var(--muted);margin-bottom:8px}
+.vessel-info-row{display:flex;justify-content:space-between;font-size:.75rem;padding:4px 0;border-bottom:1px solid var(--border)}
+.vessel-info-row:last-child{border:none}
+.vessel-lbl{color:var(--muted)}
+.vessel-val{font-weight:600;color:var(--text)}
+.vessel-no-key{background:rgba(232,184,75,.06);border:1px dashed rgba(232,184,75,.4);border-radius:8px;padding:12px;text-align:center;font-size:.75rem;color:var(--muted)}
+.vessel-no-key code{background:#0a0e18;padding:2px 6px;border-radius:4px;color:var(--gold);font-size:.7rem}
 /* ── PRINT ── */
 @media print{
   #hdr{background:#fff!important;color:#000!important;border-bottom:2px solid #333}
@@ -242,6 +284,13 @@ select option{background:#111c2b}
     <span class="resize-label" id="sidebarWidthLabel">360px</span>
   </div>
   <div class="hdr-actions">
+    <div class="xrate-widget" onclick="refreshExchangeRate(true)" title="Câmbio em tempo real — clique para atualizar">
+      <div class="xrate-dot" id="xrateDot"></div>
+      <span>USD <span class="xrate-val" id="xrateUSD">…</span></span>
+      <span style="color:var(--border)">|</span>
+      <span>CNY <span class="xrate-val" id="xrateCNY">…</span></span>
+      <span class="xrate-time" id="xrateTime"></span>
+    </div>
     <span class="badge badge-ok"><i class="fas fa-circle" style="font-size:.45rem"></i> Online</span>
     <button class="btn btn-ghost btn-sm" onclick="openModal('cfgModal')"><i class="fas fa-cog"></i> Config</button>
     <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Exportar</button>
@@ -452,9 +501,15 @@ select option{background:#111c2b}
             <option value="EUR">EUR — Euro</option>
           </select>
         </div>
-        <div class="row2" style="margin-bottom:8px">
+        <div class="row2" style="margin-bottom:6px">
           <div><div class="lbl">USD → BRL</div><input type="number" id="usdBrl" value="5.05" step="0.01" min="1"></div>
           <div><div class="lbl">CNY → BRL</div><input type="number" id="cnyBrl" value="0.70" step="0.01" min="0.1"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div id="xrateStatus" style="font-size:.65rem;color:var(--muted)"><i class="fas fa-info-circle"></i> Câmbio manual</div>
+          <button class="btn btn-ghost btn-sm" style="font-size:.68rem;padding:4px 9px" onclick="refreshExchangeRate(true)">
+            <i class="fas fa-sync-alt" id="xrateSpinIcon"></i> Atualizar câmbio
+          </button>
         </div>
         <div class="div"></div>
         <div class="lbl" style="margin-bottom:6px">Tarifas por Km (USD)</div>
@@ -709,6 +764,45 @@ select option{background:#111c2b}
           <button class="btn btn-gold" style="flex:1" onclick="exportOperationJSON()"><i class="fas fa-file-json"></i> JSON</button>
           <button class="btn btn-ghost" style="flex:1" onclick="saveConsolidationToHistory()"><i class="fas fa-history"></i> Histórico</button>
         </div>
+      </div>
+
+      <!-- Rotas das Operações -->
+      <div class="sec" id="opRoutesSection" style="display:none">
+        <div class="sec-ttl">
+          <i class="fas fa-map-marked-alt" style="color:#4ecdc4"></i> Rotas das Operações
+          <span class="pill" id="opRoutesCount" style="margin-left:auto;border-color:#4ecdc4;color:#4ecdc4;font-size:.62rem">0</span>
+        </div>
+        <div id="opRoutesList"></div>
+        <div style="display:flex;gap:7px;margin-top:8px">
+          <button class="btn btn-gold" style="flex:1;font-size:.76rem" onclick="showAllOpRoutes()">
+            <i class="fas fa-eye"></i> Mostrar Todas no Mapa
+          </button>
+          <button class="btn btn-ghost" style="font-size:.76rem;padding:7px 11px" onclick="clearOpRouteLines()" title="Limpar linhas do mapa">
+            <i class="fas fa-eraser"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Estimativa de Trânsito Total -->
+      <div class="sec" id="transitSection" style="display:none">
+        <div class="sec-ttl">
+          <i class="fas fa-shipping-fast" style="color:#a29bfe"></i> Estimativa de Trânsito até o Brasil
+        </div>
+        <div id="transitTimeline"></div>
+      </div>
+
+      <!-- Rastreamento de Vessel -->
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-ship" style="color:var(--gold)"></i> Rastreamento de Vessel</div>
+        <div class="lbl">Buscar navio por nome, IMO ou MMSI</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" id="vesselSearchInput" placeholder="Ex: MSC ANNA · IMO 9234567 · MMSI 477123456"
+            style="flex:1" onkeydown="if(event.key==='Enter')searchVessel()">
+          <button class="btn btn-gold" style="white-space:nowrap;padding:7px 14px" onclick="searchVessel()">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+        <div id="vesselResult"></div>
       </div>
 
     </div>
@@ -1702,7 +1796,10 @@ function addRouteToConsolidation(){
   const items = JSON.parse(JSON.stringify(currentOp.items)); // snapshot
   const totalUSD = items.reduce((s,i)=>s+(i.qty||1)*(i.usd||0),0);
   const id = ++savedRouteIdSeq;
-  savedRoutes.push({id, ref, desc, oc, ori, dst, dist, mod, time, vol, kg, costUSD:total, items, totalUSD});
+  savedRoutes.push({
+    id, ref, desc, oc, ori, dst, dist, mod, time, vol, kg, costUSD:total, items, totalUSD,
+    oriLat: oriLL.lat, oriLng: oriLL.lng, dstLat: dstLL.lat, dstLng: dstLL.lng,
+  });
   renderSavedRoutes();
   renderCntRoutesList();
   refreshCntStats();
@@ -1761,7 +1858,9 @@ function renderCntRoutesList(){
     list.innerHTML=`<div class="empty" style="padding:20px 0"><i class="fas fa-route" style="font-size:1.8rem;opacity:.2"></i>Nenhuma rota adicionada.<br><small>Calcule uma rota e use "Adicionar à Consolidação"</small></div>`;
     return;
   }
-  list.innerHTML = savedRoutes.map(r=>`
+  list.innerHTML = savedRoutes.map(r=>{
+    const transit = calcOpTransit(r);
+    return `
     <div class="sroute-card">
       <div class="sroute-top">
         <input type="checkbox" class="sroute-check" id="rchk${r.id}" checked onchange="refreshCntStats()">
@@ -1777,7 +1876,15 @@ function renderCntRoutesList(){
             ${r.items&&r.items.length?`· <span style="color:#4ecdc4">${r.items.length} itens</span>`:''}
           </div>
         </div>
+        ${r.oriLat?`<button class="btn btn-ghost btn-sm" style="font-size:.65rem;padding:4px 7px" onclick="drawSingleOpRoute(${r.id})" title="Ver rota no mapa"><i class="fas fa-map-marked-alt"></i></button>`:''}
         <button class="btn-red" onclick="removeSaved(${r.id})"><i class="fas fa-times"></i></button>
+      </div>
+      <!-- Trânsito por operação -->
+      <div class="op-route-transit" style="margin-bottom:6px">
+        <span class="transit-pill internal"><i class="fas fa-truck"></i> ${transit.internalDays}d interno</span>
+        <span class="transit-pill port"><i class="fas fa-anchor"></i> ${transit.portDays}d porto</span>
+        <span class="transit-pill maritime"><i class="fas fa-ship"></i> ${transit.maritimeDays}d marítimo</span>
+        <span class="transit-pill total"><i class="fas fa-calendar-check"></i> ~${transit.totalDays}d total</span>
       </div>
       <div class="sroute-inputs">
         <div><div class="lbl-mini">Volume m³</div>
@@ -1791,7 +1898,9 @@ function renderCntRoutesList(){
             oninput="updateSavedKg(${r.id},parseFloat(this.value)||0)">
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  renderOpRoutesSection();
 }
 
 function updateSavedVol(id,v){ const r=savedRoutes.find(x=>x.id===id); if(r){r.vol=v; refreshCntStats();} }
@@ -2483,6 +2592,7 @@ function changeEmbarquePort(portName){
   updateFreightRates();
   refreshCntStats();
   renderPortComparison();
+  renderCntRoutesList();   // atualiza tempos de trânsito
   notify(`Porto alterado para: ${portName}`,'ok');
 }
 
@@ -2757,6 +2867,390 @@ window.addEventListener('load', ()=>{
 document.addEventListener('click',e=>{
   if(e.target.classList.contains('overlay')) e.target.classList.remove('show');
 });
+
+// ─── EXCHANGE RATE (AwesomeAPI — gratuito) ───────────────────────────────────
+let _xrateTimer = null;
+const XRATE_INTERVAL = 15 * 60 * 1000; // 15 min
+
+async function refreshExchangeRate(force = false) {
+  const spinIcon = document.getElementById('xrateSpinIcon');
+  if (spinIcon) spinIcon.style.animation = 'fa-spin 0.8s linear infinite';
+
+  try {
+    const res = await fetch('/api/vessels/exchange');
+    if (!res.ok) throw new Error('falha na resposta');
+    const d = await res.json();
+
+    const usdVal = parseFloat(d.USD_BRL);
+    const cnyVal = parseFloat(d.CNY_BRL);
+
+    // Atualiza campos de câmbio na aba Custos
+    const usdInput = document.getElementById('usdBrl');
+    const cnyInput = document.getElementById('cnyBrl');
+    if (usdInput) usdInput.value = usdVal.toFixed(4);
+    if (cnyInput) cnyInput.value = cnyVal.toFixed(4);
+
+    // Atualiza widget no header
+    const xrateUSD = document.getElementById('xrateUSD');
+    const xrateCNY = document.getElementById('xrateCNY');
+    const xrateTime = document.getElementById('xrateTime');
+    const xrateDot  = document.getElementById('xrateDot');
+    if (xrateUSD) xrateUSD.textContent = usdVal.toFixed(2);
+    if (xrateCNY) xrateCNY.textContent = cnyVal.toFixed(3);
+    if (xrateTime) {
+      const ts = d.updated_at ? new Date(d.updated_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      xrateTime.textContent = ts;
+    }
+    if (xrateDot) xrateDot.style.background = d.source === 'fallback' ? '#fa3' : '#3c9';
+
+    // Status na aba Custos
+    const xrateStatus = document.getElementById('xrateStatus');
+    if (xrateStatus) {
+      const ts = d.updated_at ? new Date(d.updated_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      const src = d.source === 'fallback' ? '⚠️ Fallback' : '✓ AwesomeAPI';
+      const high = d.USD_high ? ` | Max: ${parseFloat(d.USD_high).toFixed(2)}` : '';
+      const low  = d.USD_low  ? ` | Min: ${parseFloat(d.USD_low).toFixed(2)}`  : '';
+      xrateStatus.innerHTML = `<i class="fas fa-sync-alt"></i> ${src} — atualizado ${ts}${high}${low}`;
+      xrateStatus.style.color = d.source === 'fallback' ? '#fa3' : '#3c9';
+    }
+
+    if (force) notify('Câmbio atualizado em tempo real!', 'ok');
+  } catch (err) {
+    const xrateDot = document.getElementById('xrateDot');
+    if (xrateDot) xrateDot.style.background = '#c44';
+    const xrateStatus = document.getElementById('xrateStatus');
+    if (xrateStatus) { xrateStatus.textContent = '⚠️ Falha ao obter câmbio'; xrateStatus.style.color = '#c44'; }
+    if (force) notify('Falha ao atualizar câmbio', 'err');
+  } finally {
+    if (spinIcon) spinIcon.style.animation = '';
+  }
+}
+
+// Inicializa e agenda atualização a cada 15 min
+(function initExchangeRate() {
+  refreshExchangeRate(false);
+  setInterval(() => refreshExchangeRate(false), XRATE_INTERVAL);
+})();
+
+// ─── TRANSIT TIME PER OPERATION ─────────────────────────────────────────────
+const PORT_TO_SANTOS_DAYS = {
+  'Shanghai':              35,
+  'Ningbo-Zhoushan':       33,
+  'Shenzhen / Yantian':    28,
+  'Guangzhou / Nansha':    28,
+  'Tianjin':               40,
+  'Qingdao':               36,
+  'Xiamen':                30,
+  'Dalian':                42,
+};
+
+function calcOpTransit(route) {
+  // Trânsito interno: dist (km) / velocidade modal (km/h) → horas → dias
+  const distKm = parseFloat(route.dist) || 200;
+  const modal  = route.mod ? Object.keys(MODAL_SPEED).find(m => route.mod.toLowerCase().includes(m)) || 'road' : 'road';
+  const speedKmH = MODAL_SPEED[modal] || 65;
+  const internalDays = Math.max(1, Math.ceil(distKm / speedKmH / 24));
+
+  // Porto de embarque selecionado
+  const portDays    = 3; // CY cutoff + loading
+  const maritimeDays = PORT_TO_SANTOS_DAYS[selectedEmbarquePort] || 30;
+  const totalDays   = internalDays + portDays + maritimeDays;
+
+  return { internalDays, portDays, maritimeDays, totalDays };
+}
+
+// ─── OP ROUTES SECTION (Container tab) ──────────────────────────────────────
+let opRouteLines = {}; // id → leaflet LayerGroup
+
+function renderOpRoutesSection() {
+  const sec   = document.getElementById('opRoutesSection');
+  const list  = document.getElementById('opRoutesList');
+  const count = document.getElementById('opRoutesCount');
+  const transitSec = document.getElementById('transitSection');
+
+  if (!sec || !savedRoutes.length) {
+    if (sec) sec.style.display = 'none';
+    if (transitSec) transitSec.style.display = 'none';
+    return;
+  }
+  sec.style.display = '';
+  if (count) count.textContent = savedRoutes.length;
+
+  list.innerHTML = savedRoutes.map(r => {
+    const transit = calcOpTransit(r);
+    const col = ['#4ecdc4','#a29bfe','#fd79a8','#ffd93d','#ff6b6b','#55efc4'][r.id % 6];
+    return `
+    <div class="op-route-card">
+      <div class="op-route-header">
+        <div style="width:12px;height:12px;border-radius:50%;background:${col};flex-shrink:0"></div>
+        <div style="flex:1">
+          <div class="op-route-path">${r.ori} → ${r.dst}</div>
+          <div class="op-route-sub">${r.mod} · ${r.dist} · Ref: ${r.ref}</div>
+        </div>
+        ${r.oriLat ? `<button class="btn btn-ghost btn-sm" style="font-size:.65rem;padding:3px 7px" onclick="drawSingleOpRoute(${r.id})" title="Ver no mapa"><i class="fas fa-eye"></i></button>` : ''}
+      </div>
+      <div class="op-route-transit">
+        <span class="transit-pill internal"><i class="fas fa-truck"></i> ${transit.internalDays}d na China</span>
+        <span class="transit-pill port"><i class="fas fa-anchor"></i> ${transit.portDays}d porto</span>
+        <span class="transit-pill maritime"><i class="fas fa-ship"></i> ${transit.maritimeDays}d marítimo</span>
+        <span class="transit-pill total"><i class="fas fa-map-marker-alt"></i> ~${transit.totalDays}d até BR</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  renderTransitTimeline();
+}
+
+function renderTransitTimeline() {
+  const sec = document.getElementById('transitSection');
+  const tl  = document.getElementById('transitTimeline');
+  if (!sec || !tl || !savedRoutes.length) {
+    if (sec) sec.style.display = 'none';
+    return;
+  }
+  sec.style.display = '';
+
+  // Calcula a rota com maior tempo de trânsito interno (pior caso)
+  const transits = savedRoutes.map(r => calcOpTransit(r));
+  const maxInternal  = Math.max(...transits.map(t => t.internalDays));
+  const portDays     = 3;
+  const maritimeDays = PORT_TO_SANTOS_DAYS[selectedEmbarquePort] || 30;
+  const customsDays  = 10; // estimativa desembaraço BR
+  const totalDays    = maxInternal + portDays + maritimeDays + customsDays;
+
+  const portName = selectedEmbarquePort || 'Porto';
+
+  tl.innerHTML = `
+  <div class="transit-row">
+    <div class="transit-step">
+      <span class="transit-icon">🏭</span>
+      <span class="transit-days">Dia 0</span>
+      <span class="transit-lbl">Fábrica<br>Coleta</span>
+    </div>
+    <div class="transit-arrow">›</div>
+    <div class="transit-step">
+      <span class="transit-icon">🚛</span>
+      <span class="transit-days">+${maxInternal}d</span>
+      <span class="transit-lbl">Transporte<br>interno China</span>
+    </div>
+    <div class="transit-arrow">›</div>
+    <div class="transit-step">
+      <span class="transit-icon">⚓</span>
+      <span class="transit-days">+${portDays}d</span>
+      <span class="transit-lbl">Porto ${portName.split('/')[0].trim()}<br>CY / Embarque</span>
+    </div>
+    <div class="transit-arrow">›</div>
+    <div class="transit-step">
+      <span class="transit-icon">🚢</span>
+      <span class="transit-days">+${maritimeDays}d</span>
+      <span class="transit-lbl">Trânsito<br>marítimo</span>
+    </div>
+    <div class="transit-arrow">›</div>
+    <div class="transit-step">
+      <span class="transit-icon">🇧🇷</span>
+      <span class="transit-days">+${customsDays}d</span>
+      <span class="transit-lbl">Santos<br>Desembaraço</span>
+    </div>
+  </div>
+  <div class="transit-total-bar">
+    <div class="transit-total-row">
+      <span style="color:var(--muted)">Fábrica → Porto ${portName.split('/')[0].trim()}</span>
+      <span style="font-weight:700">~${maxInternal + portDays} dias</span>
+    </div>
+    <div class="transit-total-row">
+      <span style="color:var(--muted)">Trânsito marítimo (${portName.split('/')[0].trim()} → Santos)</span>
+      <span style="font-weight:700">${maritimeDays} dias</span>
+    </div>
+    <div class="transit-total-row">
+      <span style="color:var(--muted)">Desembaraço / Entrega no Brasil</span>
+      <span style="font-weight:700">~${customsDays} dias</span>
+    </div>
+    <div class="transit-total-row">
+      <span>ESTIMATIVA TOTAL (FÁBRICA → BRASIL)</span>
+      <span class="mval gld">~${totalDays} dias</span>
+    </div>
+    <div style="font-size:.65rem;color:var(--muted);margin-top:6px">
+      <i class="fas fa-info-circle"></i> Estimativa baseada em serviço direto. Tempo pode variar por temporada, congestionamento portuário e armador.
+    </div>
+  </div>`;
+}
+
+// ─── MAP ROUTE DRAWING FOR OPERATIONS ───────────────────────────────────────
+function drawSingleOpRoute(routeId) {
+  const r = savedRoutes.find(x => x.id === routeId);
+  if (!r || !r.oriLat) { notify('Coordenadas não disponíveis para esta rota', 'err'); return; }
+
+  const col = ['#4ecdc4','#a29bfe','#fd79a8','#ffd93d','#ff6b6b','#55efc4'][routeId % 6];
+
+  if (opRouteLines[routeId]) {
+    map.removeLayer(opRouteLines[routeId]);
+    delete opRouteLines[routeId];
+    notify(`Rota ${r.ref} removida do mapa`, 'ok');
+    return;
+  }
+
+  const url = `https://router.project-osrm.org/route/v1/driving/${r.oriLng},${r.oriLat};${r.dstLng},${r.dstLat}?overview=full&geometries=geojson`;
+
+  fetch(url, { signal: AbortSignal.timeout(7000) })
+    .then(res => res.json())
+    .then(data => {
+      const pts = data.routes?.[0]?.geometry?.coordinates?.map(c => [c[1], c[0]])
+        || buildOpCurve(r.oriLat, r.oriLng, r.dstLat, r.dstLng);
+      renderOpLine(routeId, pts, col, r.ref);
+    })
+    .catch(() => {
+      renderOpLine(routeId, buildOpCurve(r.oriLat, r.oriLng, r.dstLat, r.dstLng), col, r.ref);
+    });
+}
+
+function buildOpCurve(la1, ln1, la2, ln2) {
+  const pts = [];
+  for (let i = 0; i <= 60; i++) {
+    const t = i / 60;
+    pts.push([la1 + (la2 - la1) * t + Math.sin(t * Math.PI) * 1.2, ln1 + (ln2 - ln1) * t]);
+  }
+  return pts;
+}
+
+function renderOpLine(routeId, pts, col, label) {
+  opRouteLines[routeId] = L.layerGroup([
+    L.polyline(pts, { color: '#000', weight: 6, opacity: .2 }),
+    L.polyline(pts, { color: col,   weight: 3, opacity: .9, dashArray: '8,4' })
+      .bindTooltip(`<b style="color:${col}">${label}</b>`, { permanent: false }),
+  ]).addTo(map);
+  notify(`Rota ${label} exibida no mapa`, 'ok');
+}
+
+function showAllOpRoutes() {
+  const withCoords = savedRoutes.filter(r => r.oriLat);
+  if (!withCoords.length) { notify('Nenhuma rota com coordenadas disponível', 'err'); return; }
+
+  withCoords.forEach(r => {
+    if (!opRouteLines[r.id]) drawSingleOpRoute(r.id);
+  });
+
+  // Ajusta o mapa para mostrar todos os pontos
+  const allPts = withCoords.flatMap(r => [[r.oriLat, r.oriLng], [r.dstLat, r.dstLng]]);
+  if (allPts.length) map.fitBounds(L.latLngBounds(allPts).pad(0.15));
+  notify(`Mostrando ${withCoords.length} rota(s) no mapa`, 'ok');
+}
+
+function clearOpRouteLines() {
+  Object.values(opRouteLines).forEach(l => map.removeLayer(l));
+  opRouteLines = {};
+  notify('Linhas de rota removidas do mapa', 'ok');
+}
+
+// ─── VESSEL TRACKING SEARCH ─────────────────────────────────────────────────
+async function searchVessel() {
+  const input = document.getElementById('vesselSearchInput')?.value?.trim();
+  if (!input) { notify('Digite um nome, IMO ou MMSI', 'err'); return; }
+
+  const resultEl = document.getElementById('vesselResult');
+  if (resultEl) resultEl.innerHTML = `<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem"><i class="fas fa-circle-notch fa-spin"></i> Buscando vessel…</div>`;
+
+  // Detecta se é IMO (7 dígitos), MMSI (9 dígitos) ou nome
+  let params = '';
+  if (/^\d{9}$/.test(input))  params = `mmsi=${input}`;
+  else if (/^\d{7}$/.test(input)) params = `imo=${input}`;
+  else params = `q=${encodeURIComponent(input)}`;
+
+  try {
+    const res = await fetch(`/api/vessels/search?${params}`, { signal: AbortSignal.timeout(15000) });
+    const d = await res.json();
+
+    if (!d.configured) {
+      resultEl.innerHTML = `
+        <div class="vessel-no-key">
+          <div style="font-size:1.2rem;margin-bottom:6px">⚙️</div>
+          <div style="font-weight:700;color:var(--text);margin-bottom:6px">API de Rastreamento não configurada</div>
+          <div style="margin-bottom:8px">${d.hint || 'Configure VESSEL_API_KEY no arquivo .env'}</div>
+          <div>Providers suportados:</div>
+          <div style="margin-top:4px;line-height:1.9">
+            <code>vesselFinder</code> — VesselFinder (créditos €330+)<br>
+            <code>marineTraffic</code> — MarineTraffic (enterprise)<br>
+            <code>datalastic</code> — Datalastic (~€80/mês)
+          </div>
+        </div>`;
+      return;
+    }
+
+    if (d.error) throw new Error(d.error);
+
+    // Normaliza a resposta de diferentes providers
+    const vessels = normalizeVesselResponse(d.provider, d.data);
+    if (!vessels.length) {
+      resultEl.innerHTML = `<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem"><i class="fas fa-search"></i> Nenhum vessel encontrado para "${input}"</div>`;
+      return;
+    }
+
+    resultEl.innerHTML = vessels.slice(0, 3).map(v => `
+      <div class="vessel-card">
+        <div class="vessel-card-name">${v.name || '—'}</div>
+        <div class="vessel-card-flag">${v.flag || ''} ${v.type || 'Navio'} · IMO: ${v.imo || '—'} · MMSI: ${v.mmsi || '—'}</div>
+        <div class="vessel-info-row"><span class="vessel-lbl">Posição</span><span class="vessel-val">${v.lat && v.lng ? `${parseFloat(v.lat).toFixed(3)}°, ${parseFloat(v.lng).toFixed(3)}°` : '—'}</span></div>
+        <div class="vessel-info-row"><span class="vessel-lbl">Velocidade</span><span class="vessel-val">${v.speed !== undefined ? v.speed + ' nós' : '—'}</span></div>
+        <div class="vessel-info-row"><span class="vessel-lbl">Destino declarado</span><span class="vessel-val">${v.destination || '—'}</span></div>
+        <div class="vessel-info-row"><span class="vessel-lbl">ETA</span><span class="vessel-val">${v.eta || '—'}</span></div>
+        <div class="vessel-info-row"><span class="vessel-lbl">Status</span><span class="vessel-val">${v.status || '—'}</span></div>
+        ${v.lat && v.lng ? `<button class="btn btn-ghost" style="width:100%;font-size:.72rem;margin-top:8px" onclick="plotVesselOnMap(${v.lat},${v.lng},'${(v.name||'').replace(/'/g,"\\'")}')"><i class="fas fa-map-marker-alt"></i> Ver no Mapa</button>` : ''}
+      </div>`).join('');
+  } catch (err) {
+    resultEl.innerHTML = `<div style="text-align:center;padding:14px;color:#c44;font-size:.8rem"><i class="fas fa-exclamation-triangle"></i> Erro: ${err.message}</div>`;
+  }
+}
+
+function normalizeVesselResponse(provider, data) {
+  if (!data) return [];
+  try {
+    if (provider === 'vesselFinder') {
+      const arr = Array.isArray(data) ? data : (data.vessels || data.data || [data]);
+      return arr.map(v => ({
+        name: v.NAME || v.AIS?.NAME,
+        imo:  v.IMO  || v.AIS?.IMO,
+        mmsi: v.MMSI || v.AIS?.MMSI,
+        lat:  v.LAT  || v.AIS?.LATITUDE,
+        lng:  v.LON  || v.AIS?.LONGITUDE,
+        speed: v.SPEED || v.AIS?.SPEED,
+        destination: v.DESTINATION || v.AIS?.DESTINATION,
+        eta: v.ETA || v.AIS?.ETA,
+        flag: v.COUNTRYCODE || '',
+        type: v.TYPE || '',
+        status: v.STATUS || '',
+      }));
+    }
+    if (provider === 'marineTraffic') {
+      const arr = Array.isArray(data) ? data : (data.DATA || []);
+      return arr.map(v => ({
+        name: v.SHIPNAME, imo: v.IMO, mmsi: v.MMSI,
+        lat: v.LAT, lng: v.LON, speed: v.SPEED,
+        destination: v.DESTINATION, eta: v.ETA, flag: v.FLAG, type: v.TYPE,
+      }));
+    }
+    if (provider === 'datalastic') {
+      const arr = Array.isArray(data) ? data : (data.data ? [data.data] : []);
+      return arr.map(v => ({
+        name: v.name, imo: v.imo, mmsi: v.mmsi,
+        lat: v.latitude, lng: v.longitude, speed: v.speed,
+        destination: v.destination, eta: v.eta, flag: v.country_iso,
+        type: v.type, status: v.navigational_status,
+      }));
+    }
+  } catch { return []; }
+  return [];
+}
+
+function plotVesselOnMap(lat, lng, name) {
+  const vesselIcon = L.divIcon({
+    className: '',
+    html: `<div style="background:#e8b84b;color:#000;padding:4px 8px;border-radius:6px;font-size:.68rem;font-weight:800;white-space:nowrap;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)">🚢 ${name}</div>`,
+    iconAnchor: [40, 16],
+  });
+  const mk = L.marker([lat, lng], { icon: vesselIcon }).addTo(map);
+  mk.bindPopup(`<b>🚢 ${name}</b><br>${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)}`).openPopup();
+  map.setView([lat, lng], 5);
+  notify(`${name} plotado no mapa`, 'ok');
+}
 </script>
 </body>
 </html>

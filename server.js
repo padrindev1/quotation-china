@@ -16,6 +16,7 @@ const notificationRoutes = require('./routes/notifications');
 const userRoutes = require('./routes/users');
 const importRoutes = require('./routes/import');
 const consolidationRoutes = require('./routes/consolidation');
+const vesselRoutes = require('./routes/vessels');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,7 +31,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://tile.openstreetmap.org"],
+      connectSrc: ["'self'", "https://tile.openstreetmap.org", "https://router.project-osrm.org", "https://server.arcgisonline.com"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -70,6 +71,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/consolidation', consolidationRoutes);
+app.use('/api/vessels', vesselRoutes);
 
 const pages = ['dashboard', 'suppliers', 'payments', 'customs', 'notifications', 'users', 'reports', 'import'];
 pages.forEach(page => {
