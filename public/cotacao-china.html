@@ -216,6 +216,99 @@ select option{background:#111c2b}
 .summary-table td{padding:5px 8px;border-bottom:1px solid var(--border)}
 .summary-table tr:hover td{background:rgba(255,255,255,.03)}
 .color-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+/* ── FREIGHT RATES MODAL ── */
+.rates-modal-box{background:#111c2b;border:1px solid #2a4060;border-radius:10px;padding:22px;width:800px;max-width:98vw;max-height:90vh;overflow-y:auto}
+.rates-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:10px}
+.rates-table th{background:#0a1420;color:var(--gold);padding:7px 9px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);white-space:nowrap}
+.rates-table th:first-child{text-align:left}
+.rates-table td{padding:5px 7px;border-bottom:1px solid var(--border);vertical-align:middle}
+.rates-table tr:hover td{background:rgba(255,255,255,.02)}
+.rates-table td:first-child{font-weight:600;white-space:nowrap;color:var(--text)}
+.rate-input{width:80px;background:#090e18;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 6px;font-size:.78rem;text-align:right}
+.rate-input:focus{border-color:var(--gold);outline:none}
+.rate-input.stale{border-color:#fa3;color:#fa3}
+.rate-age{font-size:.6rem;color:var(--muted);display:block;text-align:center;margin-top:2px;line-height:1.2}
+.rate-age.fresh{color:#3c9}
+.rate-age.warn{color:#fa3}
+.rate-age.stale{color:#c44}
+.rate-source-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:10px;font-size:.6rem;font-weight:600}
+.rate-source-manual{background:rgba(100,100,100,.15);color:#888;border:1px solid #333}
+.rate-source-api{background:rgba(51,204,153,.1);color:#3c9;border:1px solid rgba(51,204,153,.3)}
+.rate-source-seed{background:rgba(100,100,255,.1);color:#7af;border:1px solid rgba(100,100,255,.3)}
+/* ── RATES STATUS BAR ── */
+.rates-status-bar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(13,21,32,.7);border:1px solid var(--border);border-radius:6px;font-size:.7rem;margin-bottom:8px;flex-wrap:wrap}
+.rates-status-bar.stale{border-color:#fa3}
+.rates-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.rates-dot.fresh{background:#3c9}
+.rates-dot.stale{background:#fa3;animation:pulse 2s infinite}
+/* ── EXCHANGE RATE WIDGET ── */
+.xrate-widget{display:flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(13,21,32,.85);border:1px solid var(--border);border-radius:6px;font-size:.7rem;cursor:pointer;white-space:nowrap;transition:.2s}
+.xrate-widget:hover{border-color:var(--gold)}
+.xrate-val{color:var(--gold);font-weight:700}
+.xrate-time{color:var(--muted);font-size:.62rem}
+.xrate-dot{width:6px;height:6px;border-radius:50%;background:#3c9;flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* ── TRANSIT TIMELINE ── */
+.transit-row{display:flex;align-items:stretch;margin-bottom:10px;font-size:.72rem}
+.transit-step{flex:1;padding:7px 6px;background:#090e18;border:1px solid var(--border);text-align:center;position:relative}
+.transit-step:first-child{border-radius:6px 0 0 6px}
+.transit-step:last-child{border-radius:0 6px 6px 0}
+.transit-arrow{display:flex;align-items:center;color:#2a4060;font-size:.75rem;padding:0 2px;flex-shrink:0}
+.transit-days{font-size:.88rem;font-weight:800;color:var(--gold);display:block;margin-bottom:1px}
+.transit-lbl{color:var(--muted);font-size:.6rem;line-height:1.3}
+.transit-icon{font-size:.9rem;display:block;margin-bottom:2px}
+.transit-total-bar{background:linear-gradient(135deg,rgba(232,184,75,.1),rgba(232,184,75,.03));border:1px solid rgba(232,184,75,.3);border-radius:7px;padding:10px 13px;margin-top:8px}
+.transit-total-row{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;padding:3px 0;border-bottom:1px solid rgba(232,184,75,.1)}
+.transit-total-row:last-child{border:none;font-weight:800;font-size:.9rem;margin-top:4px}
+/* ── OP ROUTE CARDS ── */
+.op-route-card{background:#090e18;border:1px solid var(--border);border-radius:7px;padding:9px 11px;margin-bottom:7px}
+.op-route-card:hover{border-color:#2a4060}
+.op-route-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.op-route-path{font-size:.78rem;font-weight:700;flex:1;line-height:1.4}
+.op-route-sub{font-size:.68rem;color:var(--muted)}
+.op-route-pills{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.op-route-transit{display:flex;gap:6px;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--border)}
+.transit-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:12px;font-size:.65rem;font-weight:600;background:#0f1923;border:1px solid var(--border)}
+.transit-pill.internal{border-color:#4ecdc4;color:#4ecdc4}
+.transit-pill.port{border-color:#f39c12;color:#f39c12}
+.transit-pill.maritime{border-color:#a29bfe;color:#a29bfe}
+.transit-pill.total{border-color:var(--gold);color:var(--gold);font-size:.68rem}
+/* ── VESSEL SEARCH ── */
+.vessel-card{background:#090e18;border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:8px}
+.vessel-card-name{font-size:.88rem;font-weight:700;color:#fff;margin-bottom:2px}
+.vessel-card-flag{font-size:.72rem;color:var(--muted);margin-bottom:8px}
+.vessel-info-row{display:flex;justify-content:space-between;font-size:.75rem;padding:4px 0;border-bottom:1px solid var(--border)}
+.vessel-info-row:last-child{border:none}
+.vessel-lbl{color:var(--muted)}
+.vessel-val{font-weight:600;color:var(--text)}
+.vessel-no-key{background:rgba(232,184,75,.06);border:1px dashed rgba(232,184,75,.4);border-radius:8px;padding:12px;text-align:center;font-size:.75rem;color:var(--muted)}
+.vessel-no-key code{background:#0a0e18;padding:2px 6px;border-radius:4px;color:var(--gold);font-size:.7rem}
+/* ── CSV IMPORT REDESIGN ── */
+.csv-import-sec{background:rgba(13,21,35,.6);border:1px solid #2a4060;border-radius:10px;padding:14px}
+.csv-import-actions{display:flex;gap:7px;margin-bottom:10px}
+.csv-import-actions .btn{flex:1;font-size:.74rem;padding:8px 10px;white-space:nowrap}
+.btn-tpl{background:rgba(34,187,119,.1);border:1px solid rgba(34,187,119,.35);color:#22bb77}
+.btn-tpl:hover{background:rgba(34,187,119,.2);border-color:#22bb77}
+.csv-upload-row{display:flex;gap:7px;margin-bottom:8px}
+.csv-upload-row input[type=file]{flex:1;padding:7px 11px;background:#090e18;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.78rem;cursor:pointer}
+.csv-guide-box{background:#0a0e18;border:1px solid #1e3050;border-radius:7px;padding:10px 12px;margin-bottom:8px;font-size:.68rem;color:var(--muted)}
+.csv-guide-box h4{color:var(--gold);font-size:.73rem;margin:0 0 8px;font-weight:600}
+.csv-guide-fields{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;margin-bottom:8px}
+.csv-field{display:flex;gap:5px;align-items:baseline}
+.csv-field code{background:#111c2b;color:#7dd3fc;padding:1px 5px;border-radius:3px;font-size:.65rem;white-space:nowrap}
+.csv-field span{color:#8899aa;font-size:.65rem}
+.csv-field-req code{color:#e8b84b}
+.csv-enum{color:#6b7a8d;font-size:.63rem;font-style:italic;margin-top:4px}
+.csv-nav-panel{background:rgba(232,184,75,.07);border:1px solid rgba(232,184,75,.2);border-radius:7px;padding:10px 12px;margin-top:8px}
+.csv-nav-info{font-size:.72rem;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.csv-nav-badge{background:rgba(232,184,75,.18);color:var(--gold);border-radius:12px;padding:1px 9px;font-weight:700;font-size:.73rem}
+.csv-nav-name{color:var(--text);font-size:.75rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csv-nav-btns{display:flex;gap:6px}
+.csv-nav-btns .btn{flex:1;font-size:.74rem;padding:6px 8px}
+.csv-format-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:600}
+.csv-format-badge.oktz{background:rgba(34,187,119,.15);color:#22bb77;border:1px solid rgba(34,187,119,.3)}
+.csv-format-badge.legacy{background:rgba(232,184,75,.12);color:#e8b84b;border:1px solid rgba(232,184,75,.25)}
+
 /* ── PRINT ── */
 @media print{
   #hdr{background:#fff!important;color:#000!important;border-bottom:2px solid #333}
@@ -242,6 +335,13 @@ select option{background:#111c2b}
     <span class="resize-label" id="sidebarWidthLabel">360px</span>
   </div>
   <div class="hdr-actions">
+    <div class="xrate-widget" onclick="refreshExchangeRate(true)" title="Câmbio em tempo real — clique para atualizar">
+      <div class="xrate-dot" id="xrateDot"></div>
+      <span>USD <span class="xrate-val" id="xrateUSD">…</span></span>
+      <span style="color:var(--border)">|</span>
+      <span>CNY <span class="xrate-val" id="xrateCNY">…</span></span>
+      <span class="xrate-time" id="xrateTime"></span>
+    </div>
     <span class="badge badge-ok"><i class="fas fa-circle" style="font-size:.45rem"></i> Online</span>
     <button class="btn btn-ghost btn-sm" onclick="openModal('cfgModal')"><i class="fas fa-cog"></i> Config</button>
     <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Exportar</button>
@@ -267,22 +367,57 @@ select option{background:#111c2b}
       <!-- CSV IMPORT -->
       <div class="sec">
         <div class="sec-ttl"><i class="fas fa-file-csv" style="color:var(--gold)"></i> Importar de CSV</div>
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <input type="file" id="csvFile" accept=".csv" style="flex:1;padding:7px 11px;background:#090e18;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.82rem;cursor:pointer">
-          <button class="btn btn-gold" style="padding:7px 14px;white-space:nowrap" onclick="importCSV()"><i class="fas fa-upload"></i> Importar</button>
-        </div>
-        <button class="btn btn-ghost" style="width:100%;font-size:.72rem;margin-bottom:8px" onclick="toggleCSVDebug()"><i class="fas fa-bug"></i> Ver Estrutura do CSV</button>
-        <div id="csvDebug" style="display:none;background:#0a0e18;border:1px solid #2a4060;border-radius:6px;padding:8px;margin-bottom:10px;max-height:300px;overflow:auto;font-size:.65rem;font-family:monospace;color:#aaa"></div>
-        <div id="csvStatus" style="font-size:.7rem;color:var(--muted);display:none"></div>
-        <div id="supplierNav" style="display:none;margin-top:10px;padding:8px 10px;background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.2);border-radius:6px">
-          <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px">
-            Fornecedor <span id="currentSupplier">1</span> de <span id="totalSuppliers">5</span>: <span id="supplierName">—</span>
+        <div class="csv-import-sec">
+          <div class="csv-import-actions">
+            <a class="btn btn-tpl" href="/templates/OKTZ_template_rotas.xlsx" download style="text-decoration:none;display:flex;align-items:center;gap:5px;justify-content:center"><i class="fas fa-file-excel"></i> Baixar XLSX (Excel)</a>
+            <a class="btn btn-ghost" href="/templates/OKTZ_template_rotas.csv" download style="text-decoration:none;display:flex;align-items:center;gap:5px;justify-content:center;font-size:.74rem;padding:8px 10px"><i class="fas fa-file-csv"></i> CSV</a>
+            <button class="btn btn-ghost" onclick="toggleCsvGuide()" id="btnCsvGuide"><i class="fas fa-question-circle"></i> Guia</button>
           </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost" style="flex:1;font-size:.75rem;padding:6px 10px" id="prevSupBtn" onclick="navigateSupplier(-1)" style="display:none"><i class="fas fa-chevron-left"></i> Anterior</button>
-            <button class="btn btn-ghost" style="flex:1;font-size:.75rem;padding:6px 10px" id="nextSupBtn" onclick="navigateSupplier(1)"><i class="fas fa-chevron-right"></i> Próximo</button>
+          <div id="csvGuideBox" class="csv-guide-box" style="display:none">
+            <h4><i class="fas fa-shoe-prints"></i> Como usar a planilha</h4>
+            <div style="color:#7dd3fc;font-size:.68rem;margin-bottom:8px;line-height:1.6">
+              1. <strong>Baixe</strong> a planilha em <strong>XLSX</strong> (Excel/Sheets formatado) ou <strong>CSV</strong><br>
+              2. Abra no <strong>Google Sheets</strong> ou <strong>Excel</strong><br>
+              3. Preencha uma linha por operação <strong>abaixo do cabeçalho azul</strong> (não apague o cabeçalho)<br>
+              4. <strong>Salve como CSV UTF-8</strong> (Arquivo → Salvar como → CSV)<br>
+              5. Faça o <strong>upload</strong> do CSV aqui e clique Importar
+            </div>
+            <h4 style="margin-top:8px"><i class="fas fa-table"></i> Campos — obrigatórios em <span style="color:#e8b84b">amarelo</span></h4>
+            <div class="csv-guide-fields">
+              <div class="csv-field csv-field-req"><code>referencia</code><span>REF da operação <em>(obrig.)</em></span></div>
+              <div class="csv-field"><code>descricao</code><span>Descrição livre</span></div>
+              <div class="csv-field"><code>oc</code><span>Número da OC</span></div>
+              <div class="csv-field csv-field-req"><code>origem</code><span>Cidade na China <em>(obrig.)</em></span></div>
+              <div class="csv-field"><code>tipo_origem</code><span>factory | warehouse | port</span></div>
+              <div class="csv-field csv-field-req"><code>destino</code><span>Porto / cidade destino <em>(obrig.)</em></span></div>
+              <div class="csv-field"><code>tipo_destino</code><span>port | warehouse | city</span></div>
+              <div class="csv-field csv-field-req"><code>modal</code><span>road | rail | river | air</span></div>
+              <div class="csv-field"><code>peso_kg</code><span>Peso total (KG)</span></div>
+              <div class="csv-field"><code>volume_m3</code><span>Volume (m³)</span></div>
+              <div class="csv-field"><code>qtd_containers</code><span>Qtd. containers</span></div>
+              <div class="csv-field"><code>tipo_container</code><span>20gp | 40gp | 40hc | 45hc</span></div>
+            </div>
+            <div class="csv-enum">Itens (até 5): <code>item_N_desc</code>, <code>item_N_qtd</code>, <code>item_N_un</code> (UN|KG|M|M2|M3|CX|PC), <code>item_N_usd</code></div>
+            <div class="csv-enum" style="margin-top:4px;color:#4ecdc4">Portos suportados: Shanghai · Shenzhen/Yantian · Guangzhou/Nansha · Ningbo-Zhoushan · Tianjin · Qingdao · Xiamen · Dalian</div>
+          </div>
+          <div class="csv-upload-row">
+            <input type="file" id="csvFile" accept=".csv">
+            <button class="btn btn-gold" style="padding:7px 14px;white-space:nowrap" onclick="importCSV()"><i class="fas fa-upload"></i> Importar</button>
+          </div>
+          <div id="csvStatus" style="font-size:.7rem;color:var(--muted);display:none;margin-bottom:4px"></div>
+          <div id="supplierNav" class="csv-nav-panel" style="display:none">
+            <div class="csv-nav-info">
+              <span class="csv-nav-badge" id="csvNavBadge">1/5</span>
+              <span class="csv-nav-name" id="supplierName">—</span>
+              <span id="csvFormatBadge"></span>
+            </div>
+            <div class="csv-nav-btns">
+              <button class="btn btn-ghost" id="prevSupBtn" style="display:none" onclick="navigateSupplier(-1)"><i class="fas fa-chevron-left"></i> Anterior</button>
+              <button class="btn btn-ghost" id="nextSupBtn" onclick="navigateSupplier(1)"><i class="fas fa-chevron-right"></i> Próximo</button>
+            </div>
           </div>
         </div>
+        <div id="csvDebug" style="display:none;background:#0a0e18;border:1px solid #2a4060;border-radius:6px;padding:8px;margin-top:8px;max-height:300px;overflow:auto;font-size:.65rem;font-family:monospace;color:#aaa"></div>
       </div>
 
       <!-- REFERÊNCIA DA OPERAÇÃO -->
@@ -452,9 +587,15 @@ select option{background:#111c2b}
             <option value="EUR">EUR — Euro</option>
           </select>
         </div>
-        <div class="row2" style="margin-bottom:8px">
+        <div class="row2" style="margin-bottom:6px">
           <div><div class="lbl">USD → BRL</div><input type="number" id="usdBrl" value="5.05" step="0.01" min="1"></div>
           <div><div class="lbl">CNY → BRL</div><input type="number" id="cnyBrl" value="0.70" step="0.01" min="0.1"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div id="xrateStatus" style="font-size:.65rem;color:var(--muted)"><i class="fas fa-info-circle"></i> Câmbio manual</div>
+          <button class="btn btn-ghost btn-sm" style="font-size:.68rem;padding:4px 9px" onclick="refreshExchangeRate(true)">
+            <i class="fas fa-sync-alt" id="xrateSpinIcon"></i> Atualizar câmbio
+          </button>
         </div>
         <div class="div"></div>
         <div class="lbl" style="margin-bottom:6px">Tarifas por Km (USD)</div>
@@ -636,12 +777,37 @@ select option{background:#111c2b}
 
       <!-- Tarifas de frete marítimo -->
       <div class="sec">
-        <div class="sec-ttl"><i class="fas fa-ship" style="color:var(--gold)"></i> Frete Marítimo (USD / container)</div>
+        <div class="sec-ttl">
+          <i class="fas fa-ship" style="color:var(--gold)"></i> Frete Marítimo (USD / container)
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto;font-size:.68rem;padding:3px 9px" onclick="openRatesModal()">
+            <i class="fas fa-edit"></i> Gerenciar
+          </button>
+        </div>
+        <!-- Status bar das tarifas -->
+        <div class="rates-status-bar" id="ratesStatusBar">
+          <div class="rates-dot fresh" id="ratesDot"></div>
+          <span id="ratesStatusText" style="flex:1;color:var(--muted)">Carregando tarifas…</span>
+          <button class="btn btn-ghost btn-sm" style="font-size:.65rem;padding:3px 7px" onclick="loadFreightRates(true)">
+            <i class="fas fa-sync-alt" id="ratesRefreshIcon"></i>
+          </button>
+        </div>
         <div class="freight-rates">
-          <div><div class="lbl">20' GP</div><input type="number" id="f20gp" value="950" min="0" step="50" oninput="refreshCntStats()"></div>
-          <div><div class="lbl">40' GP</div><input type="number" id="f40gp" value="1400" min="0" step="50" oninput="refreshCntStats()"></div>
-          <div><div class="lbl">40' HC</div><input type="number" id="f40hc" value="1550" min="0" step="50" oninput="refreshCntStats()"></div>
-          <div><div class="lbl">45' HC</div><input type="number" id="f45hc" value="1750" min="0" step="50" oninput="refreshCntStats()"></div>
+          <div>
+            <div class="lbl">20' GP <span id="src20gp" class="rate-source-badge rate-source-seed" style="float:right"></span></div>
+            <input type="number" id="f20gp" value="950" min="0" step="50" oninput="refreshCntStats()">
+          </div>
+          <div>
+            <div class="lbl">40' GP <span id="src40gp" class="rate-source-badge rate-source-seed" style="float:right"></span></div>
+            <input type="number" id="f40gp" value="1400" min="0" step="50" oninput="refreshCntStats()">
+          </div>
+          <div>
+            <div class="lbl">40' HC <span id="src40hc" class="rate-source-badge rate-source-seed" style="float:right"></span></div>
+            <input type="number" id="f40hc" value="1550" min="0" step="50" oninput="refreshCntStats()">
+          </div>
+          <div>
+            <div class="lbl">45' HC <span id="src45hc" class="rate-source-badge rate-source-seed" style="float:right"></span></div>
+            <input type="number" id="f45hc" value="1750" min="0" step="50" oninput="refreshCntStats()">
+          </div>
         </div>
       </div>
 
@@ -709,6 +875,45 @@ select option{background:#111c2b}
           <button class="btn btn-gold" style="flex:1" onclick="exportOperationJSON()"><i class="fas fa-file-json"></i> JSON</button>
           <button class="btn btn-ghost" style="flex:1" onclick="saveConsolidationToHistory()"><i class="fas fa-history"></i> Histórico</button>
         </div>
+      </div>
+
+      <!-- Rotas das Operações -->
+      <div class="sec" id="opRoutesSection" style="display:none">
+        <div class="sec-ttl">
+          <i class="fas fa-map-marked-alt" style="color:#4ecdc4"></i> Rotas das Operações
+          <span class="pill" id="opRoutesCount" style="margin-left:auto;border-color:#4ecdc4;color:#4ecdc4;font-size:.62rem">0</span>
+        </div>
+        <div id="opRoutesList"></div>
+        <div style="display:flex;gap:7px;margin-top:8px">
+          <button class="btn btn-gold" style="flex:1;font-size:.76rem" onclick="showAllOpRoutes()">
+            <i class="fas fa-eye"></i> Mostrar Todas no Mapa
+          </button>
+          <button class="btn btn-ghost" style="font-size:.76rem;padding:7px 11px" onclick="clearOpRouteLines()" title="Limpar linhas do mapa">
+            <i class="fas fa-eraser"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Estimativa de Trânsito Total -->
+      <div class="sec" id="transitSection" style="display:none">
+        <div class="sec-ttl">
+          <i class="fas fa-shipping-fast" style="color:#a29bfe"></i> Estimativa de Trânsito até o Brasil
+        </div>
+        <div id="transitTimeline"></div>
+      </div>
+
+      <!-- Rastreamento de Vessel -->
+      <div class="sec">
+        <div class="sec-ttl"><i class="fas fa-ship" style="color:var(--gold)"></i> Rastreamento de Vessel</div>
+        <div class="lbl">Buscar navio por nome, IMO ou MMSI</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" id="vesselSearchInput" placeholder="Ex: MSC ANNA · IMO 9234567 · MMSI 477123456"
+            style="flex:1" onkeydown="if(event.key==='Enter')searchVessel()">
+          <button class="btn btn-gold" style="white-space:nowrap;padding:7px 14px" onclick="searchVessel()">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+        <div id="vesselResult"></div>
       </div>
 
     </div>
@@ -878,6 +1083,53 @@ select option{background:#111c2b}
 </div>
 
 </div><!-- /app -->
+
+<!-- FREIGHT RATES MODAL -->
+<div class="overlay" id="ratesModal">
+  <div class="rates-modal-box">
+    <div class="mbox-ttl" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <i class="fas fa-ship" style="color:var(--gold)"></i>
+      <span style="flex:1">Gerenciar Tarifas de Frete Marítimo (USD / container)</span>
+      <div id="ratesModalSource" style="font-size:.68rem;color:var(--muted)"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn btn-gold" style="flex:1;font-size:.78rem" onclick="saveFreightRates()">
+        <i class="fas fa-save"></i> Salvar Tarifas
+      </button>
+      <button class="btn btn-ghost" style="font-size:.78rem" onclick="refreshFreightFromAPI()" id="btnApiRefresh">
+        <i class="fas fa-cloud-download-alt"></i> Buscar via API
+      </button>
+      <button class="btn btn-ghost" style="font-size:.78rem" onclick="closeModal('ratesModal')">
+        <i class="fas fa-times"></i> Fechar
+      </button>
+    </div>
+
+    <div id="ratesApiStatus" style="display:none;margin-bottom:10px;padding:8px 10px;border-radius:6px;font-size:.75rem"></div>
+
+    <div style="overflow-x:auto">
+      <table class="rates-table" id="ratesTable">
+        <thead>
+          <tr>
+            <th>Porto de Embarque</th>
+            <th>20' GP</th>
+            <th>40' GP</th>
+            <th>40' HC</th>
+            <th>45' HC</th>
+          </tr>
+        </thead>
+        <tbody id="ratesTableBody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:14px;padding:10px;background:#090e18;border-radius:6px;font-size:.68rem;color:var(--muted)">
+      <i class="fas fa-info-circle" style="color:var(--gold)"></i>
+      Tarifas indicativas China → Santos (BR). Atualização recomendada semanal.
+      Sem <code style="color:var(--gold)">FREIGHT_API_KEY</code>: edite manualmente abaixo.
+      Com chave: clique em "Buscar via API" para atualizar automaticamente.
+    </div>
+  </div>
+</div>
 
 <!-- CFG MODAL -->
 <div class="overlay" id="cfgModal">
@@ -1702,7 +1954,10 @@ function addRouteToConsolidation(){
   const items = JSON.parse(JSON.stringify(currentOp.items)); // snapshot
   const totalUSD = items.reduce((s,i)=>s+(i.qty||1)*(i.usd||0),0);
   const id = ++savedRouteIdSeq;
-  savedRoutes.push({id, ref, desc, oc, ori, dst, dist, mod, time, vol, kg, costUSD:total, items, totalUSD});
+  savedRoutes.push({
+    id, ref, desc, oc, ori, dst, dist, mod, time, vol, kg, costUSD:total, items, totalUSD,
+    oriLat: oriLL.lat, oriLng: oriLL.lng, dstLat: dstLL.lat, dstLng: dstLL.lng,
+  });
   renderSavedRoutes();
   renderCntRoutesList();
   refreshCntStats();
@@ -1761,7 +2016,9 @@ function renderCntRoutesList(){
     list.innerHTML=`<div class="empty" style="padding:20px 0"><i class="fas fa-route" style="font-size:1.8rem;opacity:.2"></i>Nenhuma rota adicionada.<br><small>Calcule uma rota e use "Adicionar à Consolidação"</small></div>`;
     return;
   }
-  list.innerHTML = savedRoutes.map(r=>`
+  list.innerHTML = savedRoutes.map(r=>{
+    const transit = calcOpTransit(r);
+    return `
     <div class="sroute-card">
       <div class="sroute-top">
         <input type="checkbox" class="sroute-check" id="rchk${r.id}" checked onchange="refreshCntStats()">
@@ -1777,7 +2034,15 @@ function renderCntRoutesList(){
             ${r.items&&r.items.length?`· <span style="color:#4ecdc4">${r.items.length} itens</span>`:''}
           </div>
         </div>
+        ${r.oriLat?`<button class="btn btn-ghost btn-sm" style="font-size:.65rem;padding:4px 7px" onclick="drawSingleOpRoute(${r.id})" title="Ver rota no mapa"><i class="fas fa-map-marked-alt"></i></button>`:''}
         <button class="btn-red" onclick="removeSaved(${r.id})"><i class="fas fa-times"></i></button>
+      </div>
+      <!-- Trânsito por operação -->
+      <div class="op-route-transit" style="margin-bottom:6px">
+        <span class="transit-pill internal"><i class="fas fa-truck"></i> ${transit.internalDays}d interno</span>
+        <span class="transit-pill port"><i class="fas fa-anchor"></i> ${transit.portDays}d porto</span>
+        <span class="transit-pill maritime"><i class="fas fa-ship"></i> ${transit.maritimeDays}d marítimo</span>
+        <span class="transit-pill total"><i class="fas fa-calendar-check"></i> ~${transit.totalDays}d total</span>
       </div>
       <div class="sroute-inputs">
         <div><div class="lbl-mini">Volume m³</div>
@@ -1791,7 +2056,9 @@ function renderCntRoutesList(){
             oninput="updateSavedKg(${r.id},parseFloat(this.value)||0)">
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  renderOpRoutesSection();
 }
 
 function updateSavedVol(id,v){ const r=savedRoutes.find(x=>x.id===id); if(r){r.vol=v; refreshCntStats();} }
@@ -2483,6 +2750,8 @@ function changeEmbarquePort(portName){
   updateFreightRates();
   refreshCntStats();
   renderPortComparison();
+  renderCntRoutesList();
+  if (_freightRatesDB?.rates) updateRateSourceBadges(_freightRatesDB.rates);
   notify(`Porto alterado para: ${portName}`,'ok');
 }
 
@@ -2547,8 +2816,173 @@ window.addEventListener('load',()=>{
 // ─── CSV IMPORT FUNCTIONS ───────────────────────────────
 let csvData = null;
 let currentSupplierIdx = 0;
-let parsedSuppliers = [];
+let parsedSuppliers = [];      // legacy format
+let parsedOps = [];            // OKTZ format
+let currentOpIdx = 0;
+let _csvFormat = 'legacy';     // 'oktz' | 'legacy'
 
+// ── Template download ────────────────────────────────────
+function downloadCSVTemplate(){
+  const a = document.createElement('a');
+  a.href = '/templates/OKTZ_template_rotas.csv';
+  a.download = 'OKTZ_template_rotas.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  notify('Planilha modelo baixada!', 'ok');
+}
+
+function toggleCsvGuide(){
+  const box = document.getElementById('csvGuideBox');
+  const btn = document.getElementById('btnCsvGuide');
+  const shown = box.style.display !== 'none';
+  box.style.display = shown ? 'none' : '';
+  btn.innerHTML = shown
+    ? '<i class="fas fa-question-circle"></i> Ver Formato'
+    : '<i class="fas fa-times"></i> Fechar Guia';
+}
+
+// ── Format detection ─────────────────────────────────────
+function isOKTZFormat(data){
+  for(const row of data.slice(0, 80)){
+    const line = (row[0] || '').trim();
+    if(line.startsWith('#')) continue;
+    // Header row contains 'referencia' and 'modal'
+    const joined = row.join(',').toLowerCase();
+    if(joined.includes('referencia') && joined.includes('modal')) return true;
+    break;
+  }
+  return false;
+}
+
+// ── Parse OKTZ CSV ───────────────────────────────────────
+function parseOperationCSV(data){
+  const ops = [];
+  let headerRow = null;
+  let headerIdx = -1;
+
+  for(let i=0; i<data.length; i++){
+    const row = data[i];
+    const line = (row[0] || '').trim();
+    if(line.startsWith('#')) continue;
+    const joined = row.join(',').toLowerCase();
+    if(joined.includes('referencia') && joined.includes('modal')){
+      headerRow = row.map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
+      headerIdx = i;
+      break;
+    }
+  }
+  if(!headerRow) return ops;
+
+  const col = h => headerRow.indexOf(h);
+
+  for(let i = headerIdx + 1; i < data.length; i++){
+    const row = data[i];
+    if(!row || row.every(c => !c)) continue;
+    const first = (row[col('referencia')] || '').trim();
+    if(!first || first.startsWith('#')) continue;
+
+    const op = {
+      referencia:     first,
+      descricao:      (row[col('descricao')]      || '').trim(),
+      oc:             (row[col('oc')]              || '').trim(),
+      origem:         (row[col('origem')]          || '').trim(),
+      tipo_origem:    (row[col('tipo_origem')]     || 'factory').trim(),
+      destino:        (row[col('destino')]         || '').trim(),
+      tipo_destino:   (row[col('tipo_destino')]    || 'port').trim(),
+      modal:          (row[col('modal')]           || 'road').trim(),
+      peso_kg:        parseFloat((row[col('peso_kg')]  || '0').replace(',','.')) || 0,
+      volume_m3:      parseFloat((row[col('volume_m3')]|| '0').replace(',','.')) || 0,
+      qtd_containers: parseInt(row[col('qtd_containers')] || '1') || 1,
+      tipo_container: (row[col('tipo_container')] || '40hc').trim(),
+      items: [],
+    };
+
+    for(let n=1; n<=5; n++){
+      const desc = (row[col(`item_${n}_desc`)] || '').trim();
+      if(!desc) continue;
+      op.items.push({
+        id: n,
+        desc,
+        qty:  parseFloat((row[col(`item_${n}_qtd`)] || '1').replace(',','.')) || 1,
+        unit: (row[col(`item_${n}_un`)] || 'UN').trim().toUpperCase(),
+        usd:  parseFloat((row[col(`item_${n}_usd`)] || '0').replace(',','.')) || 0,
+      });
+    }
+
+    ops.push(op);
+  }
+  return ops;
+}
+
+// ── Load OKTZ operation into form ────────────────────────
+function loadOperationRow(idx){
+  if(idx < 0 || idx >= parsedOps.length) return;
+  const op = parsedOps[idx];
+
+  // Navigation UI
+  const total = parsedOps.length;
+  document.getElementById('csvNavBadge').textContent = `${idx+1}/${total}`;
+  document.getElementById('supplierName').textContent = (op.referencia + (op.descricao ? ' — ' + op.descricao : '')).substring(0, 70);
+  document.getElementById('prevSupBtn').style.display = idx > 0 ? '' : 'none';
+  document.getElementById('nextSupBtn').innerHTML = idx < total-1
+    ? '<i class="fas fa-chevron-right"></i> Próxima Op.'
+    : '<i class="fas fa-check"></i> Concluído';
+
+  // Reference fields
+  document.getElementById('opRef').value = op.referencia;
+  document.getElementById('opDesc').value = op.descricao;
+  document.getElementById('opOCCustom').value = op.oc;
+
+  // Origin
+  const oriCity = searchCityByAddress(op.origem);
+  if(oriCity) setOri(oriCity.lat, oriCity.lng, oriCity.n);
+  else document.getElementById('oriIn').value = op.origem;
+
+  // Destination
+  const dstCity = searchCityByAddress(op.destino);
+  if(dstCity) setDst(dstCity.lat, dstCity.lng, dstCity.n);
+  else document.getElementById('dstIn').value = op.destino;
+
+  // Type selects
+  const validOriTypes = ['factory','warehouse','port','airport','freezone','city'];
+  const validDstTypes = ['factory','warehouse','port','airport','freezone','city'];
+  const oriType = document.getElementById('oriType');
+  const dstType = document.getElementById('dstType');
+  if(oriType && validOriTypes.includes(op.tipo_origem)) oriType.value = op.tipo_origem;
+  if(dstType && validDstTypes.includes(op.tipo_destino)) dstType.value = op.tipo_destino;
+
+  // Modal buttons
+  const validModals = ['road','rail','river','air'];
+  const m = validModals.includes(op.modal) ? op.modal : 'road';
+  document.querySelectorAll('.mtbtn').forEach(btn => {
+    btn.classList.toggle('on', btn.dataset.m === m);
+  });
+  selMod = m;
+
+  // Cargo fields
+  const cWeightEl = document.getElementById('cWeight');
+  const cVolEl    = document.getElementById('cVol');
+  const cQtyEl    = document.getElementById('cQty');
+  const cTypeEl   = document.getElementById('cType');
+  if(cWeightEl && op.peso_kg > 0)      cWeightEl.value = op.peso_kg;
+  if(cVolEl    && op.volume_m3 > 0)    cVolEl.value    = op.volume_m3;
+  if(cQtyEl    && op.qtd_containers > 0) cQtyEl.value  = op.qtd_containers;
+  const validTypes = ['20gp','40gp','40hc','45hc','lcl'];
+  if(cTypeEl && validTypes.includes(op.tipo_container)) cTypeEl.value = op.tipo_container;
+
+  // Items
+  if(op.items.length > 0){
+    currentOp.items = op.items.map((it, i) => ({ ...it, id: i+1 }));
+    itemIdSeq = currentOp.items.length;
+    renderItems();
+  }
+
+  updateOpRef();
+  notify(`Operação ${idx+1}/${total} carregada: ${op.referencia}`, 'ok');
+}
+
+// ── Import dispatcher ────────────────────────────────────
 function importCSV(){
   const fileInput = document.getElementById('csvFile');
   if(!fileInput.files.length){ notify('Selecione um arquivo CSV','err'); return; }
@@ -2556,18 +2990,39 @@ function importCSV(){
   const file = fileInput.files[0];
   Papa.parse(file, {
     header: false,
+    skipEmptyLines: false,
     complete:(results)=>{
       csvData = results.data;
-      parsedSuppliers = extractSuppliersFromCSV(csvData);
 
-      if(parsedSuppliers.length===0){ notify('Nenhum fornecedor encontrado no CSV','err'); return; }
+      if(isOKTZFormat(csvData)){
+        _csvFormat = 'oktz';
+        parsedOps = parseOperationCSV(csvData);
+        if(parsedOps.length === 0){ notify('Nenhuma operação encontrada no CSV','err'); return; }
 
-      currentSupplierIdx = 0;
-      loadSupplier(0);
-      document.getElementById('supplierNav').style.display='';
-      document.getElementById('csvStatus').style.display='';
-      document.getElementById('csvStatus').textContent = `✓ ${parsedSuppliers.length} fornecedor(es) importado(s)`;
-      notify(`CSV importado: ${parsedSuppliers.length} fornecedor(es)`,'ok');
+        currentOpIdx = 0;
+        loadOperationRow(0);
+
+        const badge = `<span class="csv-format-badge oktz"><i class="fas fa-check-circle"></i> OKTZ</span>`;
+        document.getElementById('csvFormatBadge').innerHTML = badge;
+        document.getElementById('supplierNav').style.display = '';
+        document.getElementById('csvStatus').style.display = '';
+        document.getElementById('csvStatus').textContent = `✓ ${parsedOps.length} operação(ões) importada(s)`;
+        notify(`CSV OKTZ importado: ${parsedOps.length} operação(ões)`, 'ok');
+      } else {
+        _csvFormat = 'legacy';
+        parsedSuppliers = extractSuppliersFromCSV(csvData);
+        if(parsedSuppliers.length === 0){ notify('Nenhum fornecedor encontrado no CSV','err'); return; }
+
+        currentSupplierIdx = 0;
+        loadSupplier(0);
+
+        const badge = `<span class="csv-format-badge legacy"><i class="fas fa-info-circle"></i> Legado</span>`;
+        document.getElementById('csvFormatBadge').innerHTML = badge;
+        document.getElementById('supplierNav').style.display = '';
+        document.getElementById('csvStatus').style.display = '';
+        document.getElementById('csvStatus').textContent = `✓ ${parsedSuppliers.length} fornecedor(es) importado(s) (formato legado)`;
+        notify(`CSV importado: ${parsedSuppliers.length} fornecedor(es)`, 'ok');
+      }
     },
     error:(err)=>{
       notify(`Erro ao ler CSV: ${err.message}`,'err');
@@ -2579,51 +3034,33 @@ function extractSuppliersFromCSV(data){
   const suppliers = [];
   if(!data || data.length < 62) return suppliers;
 
-  // Supplier columns typically start at index 3 (after empty/header columns)
-  // Based on CSV: columns 3-7 are Supplier 1-5
   for(let col=3; col<=7; col++){
     const supplier = extractSupplierData(data, col);
     if(supplier.ocs.length > 0) suppliers.push(supplier);
   }
-
   return suppliers;
 }
 
 function extractSupplierData(data, colIdx){
   const supplier = {
-    name: '',
-    ocs: [],
-    origin: '',
-    destination: 'Santos, Brasil',
-    items: [],
-    weight: 0,
-    cbm: 0,
-    value: 0,
-    containers: 0
+    name: '', ocs: [], origin: '', destination: 'Santos, Brasil',
+    items: [], weight: 0, cbm: 0, value: 0, containers: 0
   };
 
-  // Extract company name & OCs (Row 8-24, typically 8-12)
   let companyText = '';
   for(let row=7; row<=25; row++){
     if(data[row] && data[row][colIdx]) companyText += ' ' + data[row][colIdx];
   }
   supplier.name = companyText.trim().split('\n')[0].substring(0,80);
-
-  // Extract OCs
   const ocMatches = companyText.match(/OC\s+(\d{4,5})/g) || [];
   supplier.ocs = ocMatches.map(oc=>oc.trim());
 
-  // Extract origin from address (Row 28)
   const addressText = (data[27] && data[27][colIdx]) ? String(data[27][colIdx]).toLowerCase() : '';
   const cities = ['foshan','huzhou','wenzhou','liaocheng','dongguan','shanghai','shenzhen','hangzhou','ningbo','tianjin','qingdao','xiamen','dalian'];
   for(const city of cities){
-    if(addressText.includes(city)){
-      supplier.origin = capitalizeCity(city);
-      break;
-    }
+    if(addressText.includes(city)){ supplier.origin = capitalizeCity(city); break; }
   }
 
-  // Extract items from SHIPPING MARK (Row 44-54)
   const itemText = [];
   for(let row=43; row<=54; row++){
     if(data[row] && data[row][colIdx]){
@@ -2631,25 +3068,16 @@ function extractSupplierData(data, colIdx){
       if(cell && cell.length > 5) itemText.push(cell);
     }
   }
-  supplier.items = itemText.filter(t=>t.length>0).map((t,i)=>({
-    id: i+1,
-    desc: t.substring(0,200),
-    qty: 1,
-    unit: 'UN',
-    usd: 0
-  }));
+  supplier.items = itemText.filter(t=>t.length>0).map((t,i)=>({ id:i+1, desc:t.substring(0,200), qty:1, unit:'UN', usd:0 }));
 
-  // Extract quantities (Row 59-62)
   const ctnRow = data[58] && data[58][colIdx] ? String(data[58][colIdx]).trim() : '0';
-  const gwRow = data[59] && data[59][colIdx] ? String(data[59][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
+  const gwRow  = data[59] && data[59][colIdx] ? String(data[59][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
   const cbmRow = data[60] && data[60][colIdx] ? String(data[60][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
   const valRow = data[61] && data[61][colIdx] ? String(data[61][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
-
   supplier.containers = parseInt(ctnRow) || 0;
   supplier.weight = parseFloat(gwRow) || 0;
   supplier.cbm = parseFloat(cbmRow) || 0;
   supplier.value = parseFloat(valRow) || 0;
-
   return supplier;
 }
 
@@ -2663,54 +3091,51 @@ function capitalizeCity(city){
 }
 
 function navigateSupplier(dir){
-  const newIdx = currentSupplierIdx + dir;
-  if(newIdx >= 0 && newIdx < parsedSuppliers.length){
-    currentSupplierIdx = newIdx;
-    loadSupplier(newIdx);
+  if(_csvFormat === 'oktz'){
+    const newIdx = currentOpIdx + dir;
+    if(newIdx >= 0 && newIdx < parsedOps.length){
+      currentOpIdx = newIdx;
+      loadOperationRow(newIdx);
+    }
+  } else {
+    const newIdx = currentSupplierIdx + dir;
+    if(newIdx >= 0 && newIdx < parsedSuppliers.length){
+      currentSupplierIdx = newIdx;
+      loadSupplier(newIdx);
+    }
   }
 }
 
 function loadSupplier(idx){
   if(idx < 0 || idx >= parsedSuppliers.length) return;
-
   const sup = parsedSuppliers[idx];
+  const total = parsedSuppliers.length;
 
-  // Update navigation display
-  document.getElementById('currentSupplier').textContent = (idx+1);
-  document.getElementById('totalSuppliers').textContent = parsedSuppliers.length;
+  document.getElementById('csvNavBadge').textContent = `${idx+1}/${total}`;
   document.getElementById('supplierName').textContent = sup.name.substring(0,60);
   document.getElementById('prevSupBtn').style.display = idx > 0 ? '' : 'none';
-  document.getElementById('nextSupBtn').textContent = idx < parsedSuppliers.length-1 ? '<i class="fas fa-chevron-right"></i> Próximo' : '<i class="fas fa-check"></i> Concluído';
+  document.getElementById('nextSupBtn').innerHTML = idx < total-1
+    ? '<i class="fas fa-chevron-right"></i> Próximo'
+    : '<i class="fas fa-check"></i> Concluído';
 
-  // Fill form
   document.getElementById('opRef').value = sup.ocs.join(', ');
   document.getElementById('opDesc').value = sup.name;
   document.getElementById('oriIn').value = sup.origin || '';
   document.getElementById('dstIn').value = sup.destination;
 
-  // Load items
   currentOp.items = sup.items.map((item,i)=>({...item, id:i+1}));
   itemIdSeq = currentOp.items.length;
   renderItems();
-
   updateOpRef();
   notify(`Fornecedor ${idx+1} carregado: ${sup.ocs.join(', ')}`,'ok');
 }
 
 function toggleCSVDebug(){
   const debugDiv = document.getElementById('csvDebug');
-  const fileInput = document.getElementById('csvFile');
-
-  if(!csvData || csvData.length === 0){
-    notify('Importe um CSV primeiro','err');
-    return;
-  }
+  if(!csvData || csvData.length === 0){ notify('Importe um CSV primeiro','err'); return; }
 
   if(debugDiv.style.display === 'none'){
-    // Show debug
     let html = '<div style="margin-bottom:12px"><strong>Estrutura do CSV (Linha x Coluna: Valor)</strong></div>';
-
-    // Show first 15 rows and columns 0-8
     for(let row=0; row<Math.min(csvData.length, 65); row++){
       const rowData = csvData[row] || [];
       for(let col=0; col<Math.min(rowData.length, 9); col++){
@@ -2721,10 +3146,8 @@ function toggleCSVDebug(){
         }
       }
     }
-
     debugDiv.innerHTML = html;
     debugDiv.style.display = 'block';
-    notify('Estrutura do CSV exibida. Procure pelos dados esperados.','info');
   } else {
     debugDiv.style.display = 'none';
   }
@@ -2757,6 +3180,623 @@ window.addEventListener('load', ()=>{
 document.addEventListener('click',e=>{
   if(e.target.classList.contains('overlay')) e.target.classList.remove('show');
 });
+
+// ─── FREIGHT RATES — gerenciamento DB ───────────────────────────────────────
+
+let _freightRatesDB = null; // cache local dos dados do backend
+
+const RATE_PORTS = [
+  'Shanghai','Shenzhen / Yantian','Guangzhou / Nansha',
+  'Ningbo-Zhoushan','Tianjin','Qingdao','Xiamen','Dalian',
+];
+const RATE_TYPES = ['20gp','40gp','40hc','45hc'];
+
+async function loadFreightRates(force = false) {
+  const icon = document.getElementById('ratesRefreshIcon');
+  if (icon) icon.style.animation = 'fa-spin 0.8s linear infinite';
+
+  try {
+    const res = await fetch('/api/vessels/rates');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const d = await res.json();
+    _freightRatesDB = d;
+
+    // Atualiza PORT_FREIGHT_RATES em memória com valores do banco
+    if (d.rates) {
+      Object.entries(d.rates).forEach(([port, types]) => {
+        if (!PORT_FREIGHT_RATES[port]) PORT_FREIGHT_RATES[port] = {};
+        Object.entries(types).forEach(([type, info]) => {
+          PORT_FREIGHT_RATES[port][type] = info.rate_usd;
+        });
+      });
+    }
+
+    // Atualiza campos do porto selecionado
+    updateFreightRates();
+
+    // Atualiza badges de source para o porto selecionado
+    updateRateSourceBadges(d.rates);
+
+    // Atualiza status bar
+    updateRatesStatusBar(d);
+
+    if (force) notify('Tarifas de frete atualizadas do banco!', 'ok');
+  } catch (err) {
+    const bar = document.getElementById('ratesStatusBar');
+    if (bar) bar.classList.add('stale');
+    const dot = document.getElementById('ratesDot');
+    if (dot) { dot.className = 'rates-dot stale'; }
+    const txt = document.getElementById('ratesStatusText');
+    if (txt) txt.textContent = '⚠️ Falha ao carregar tarifas';
+    if (force) notify('Falha ao carregar tarifas: ' + err.message, 'err');
+  } finally {
+    if (icon) icon.style.animation = '';
+  }
+}
+
+function updateRatesStatusBar(d) {
+  const bar = document.getElementById('ratesStatusBar');
+  const dot = document.getElementById('ratesDot');
+  const txt = document.getElementById('ratesStatusText');
+  if (!bar || !dot || !txt) return;
+
+  const isStale = d.stale;
+  bar.classList.toggle('stale', isStale);
+  dot.className = 'rates-dot ' + (isStale ? 'stale' : 'fresh');
+
+  let dateStr = '—';
+  if (d.newest_update) {
+    const dt = new Date(d.newest_update);
+    const diff = Math.floor((Date.now() - dt.getTime()) / 86400000);
+    dateStr = diff === 0 ? 'hoje' : diff === 1 ? 'ontem' : `há ${diff} dias`;
+  }
+
+  const staleWarn = isStale ? ' ⚠️ Desatualizado — recomenda-se atualizar' : '';
+  txt.innerHTML = `<i class="fas fa-database"></i> ${d.total_entries || 0} tarifas · atualizado ${dateStr}${staleWarn}`;
+  txt.style.color = isStale ? '#fa3' : 'var(--muted)';
+}
+
+function updateRateSourceBadges(rates) {
+  if (!rates || !selectedEmbarquePort) return;
+  const portRates = rates[selectedEmbarquePort] || {};
+  RATE_TYPES.forEach(type => {
+    const el = document.getElementById(`src${type.replace(/'/g,'').toLowerCase()}`);
+    if (!el) return;
+    const info = portRates[type];
+    if (!info) { el.textContent = ''; return; }
+    const src = info.source || 'manual';
+    el.className = `rate-source-badge rate-source-${src}`;
+    el.textContent = src === 'api' ? '🔗 API' : src === 'seed' ? 'padrão' : 'manual';
+  });
+}
+
+async function saveFreightRates() {
+  const tbody = document.getElementById('ratesTableBody');
+  if (!tbody) return;
+
+  const rates = [];
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const port = tr.dataset.port;
+    if (!port) return;
+    RATE_TYPES.forEach(type => {
+      const inp = tr.querySelector(`input[data-type="${type}"]`);
+      const val = parseFloat(inp?.value || 0);
+      if (val > 0) rates.push({ port, container_type: type, rate_usd: val });
+    });
+  });
+
+  if (!rates.length) { notify('Nenhuma tarifa para salvar', 'err'); return; }
+
+  try {
+    const res = await fetch('/api/vessels/rates', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rates }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const d = await res.json();
+    _freightRatesDB = d;
+
+    // Atualiza memória e campos
+    if (d.rates) {
+      Object.entries(d.rates).forEach(([port, types]) => {
+        if (!PORT_FREIGHT_RATES[port]) PORT_FREIGHT_RATES[port] = {};
+        Object.entries(types).forEach(([type, info]) => {
+          PORT_FREIGHT_RATES[port][type] = info.rate_usd;
+        });
+      });
+    }
+    updateFreightRates();
+    updateRateSourceBadges(d.rates);
+
+    closeModal('ratesModal');
+    notify(`${rates.length} tarifas salvas com sucesso!`, 'ok');
+  } catch (err) {
+    notify('Erro ao salvar tarifas: ' + err.message, 'err');
+  }
+}
+
+async function refreshFreightFromAPI() {
+  const btn    = document.getElementById('btnApiRefresh');
+  const status = document.getElementById('ratesApiStatus');
+  if (btn) btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Buscando…';
+  if (status) { status.style.display = ''; status.textContent = 'Consultando API…'; status.style.background = 'rgba(232,184,75,.08)'; status.style.color = '#fa3'; }
+
+  try {
+    const res = await fetch('/api/vessels/rates/refresh', { method: 'POST' });
+    const d = await res.json();
+
+    if (!d.configured) {
+      status.style.background = 'rgba(100,100,255,.08)';
+      status.style.color = '#a29bfe';
+      status.innerHTML = `<i class="fas fa-info-circle"></i> <strong>API não configurada.</strong> ${d.hint}<br>
+        <span style="font-size:.65rem;margin-top:4px;display:block">Providers: ${(d.providers||[]).map(p=>`<a href="${p.url}" target="_blank" style="color:#a29bfe">${p.name}</a>`).join(' · ')}</span>`;
+      return;
+    }
+
+    if (d.error) throw new Error(d.error);
+
+    // Atualiza modal com novas tarifas
+    if (d.rates) {
+      _freightRatesDB = d;
+      Object.entries(d.rates).forEach(([port, types]) => {
+        if (!PORT_FREIGHT_RATES[port]) PORT_FREIGHT_RATES[port] = {};
+        Object.entries(types).forEach(([type, info]) => {
+          PORT_FREIGHT_RATES[port][type] = info.rate_usd;
+          const inp = document.querySelector(`#ratesTableBody tr[data-port="${port}"] input[data-type="${type}"]`);
+          if (inp) { inp.value = info.rate_usd; inp.classList.remove('stale'); }
+        });
+      });
+    }
+
+    status.style.background = 'rgba(51,204,153,.08)';
+    status.style.color = '#3c9';
+    status.innerHTML = `<i class="fas fa-check-circle"></i> ${d.fetched || 0} tarifas atualizadas via ${d.provider}.`;
+    notify(`${d.fetched || 0} tarifas atualizadas via API!`, 'ok');
+  } catch (err) {
+    status.style.background = 'rgba(200,50,50,.08)';
+    status.style.color = '#c44';
+    status.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Erro: ${err.message}`;
+    notify('Falha ao buscar via API: ' + err.message, 'err');
+  } finally {
+    if (btn) btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Buscar via API';
+  }
+}
+
+function openRatesModal() {
+  const tbody = document.getElementById('ratesTableBody');
+  if (!tbody) return;
+
+  const rates    = _freightRatesDB?.rates || {};
+  const staleH   = 7 * 24;
+
+  tbody.innerHTML = RATE_PORTS.map(port => {
+    const cells = RATE_TYPES.map(type => {
+      const info   = rates[port]?.[type];
+      const val    = info?.rate_usd ?? (PORT_FREIGHT_RATES[port]?.[type] || 0);
+      const ageH   = info ? (Date.now() - new Date(info.updated_at).getTime()) / 3_600_000 : Infinity;
+      const ageClass = ageH < 24 ? 'fresh' : ageH < staleH ? '' : 'stale';
+      const ageTxt = ageH < 1 ? 'agora' : ageH < 24 ? `${Math.floor(ageH)}h atrás` :
+                     ageH < 168 ? `${Math.floor(ageH/24)}d atrás` : `${Math.floor(ageH/168)}sem atrás`;
+      const isStale = ageH >= staleH;
+      return `<td style="text-align:center">
+        <input class="rate-input${isStale?' stale':''}" type="number" value="${val}" min="0" step="50" data-type="${type}">
+        <span class="rate-age ${ageClass}">${info ? ageTxt : '—'}</span>
+      </td>`;
+    }).join('');
+
+    const portRates  = rates[port] || {};
+    const sources    = [...new Set(Object.values(portRates).map(v => v?.source).filter(Boolean))];
+    const srcLabel   = sources.map(s =>
+      `<span class="rate-source-badge rate-source-${s}" style="margin-left:3px">${s === 'api' ? '🔗 API' : s === 'seed' ? 'padrão' : s}</span>`
+    ).join('');
+
+    return `<tr data-port="${port}"><td>${port}${srcLabel}</td>${cells}</tr>`;
+  }).join('');
+
+  const src = document.getElementById('ratesModalSource');
+  if (src && _freightRatesDB?.newest_update) {
+    const dt   = new Date(_freightRatesDB.newest_update);
+    const diff = Math.floor((Date.now() - dt.getTime()) / 86400000);
+    const when = diff === 0 ? 'hoje' : diff === 1 ? 'ontem' : `há ${diff} dias`;
+    src.textContent = `Última atualização: ${when}`;
+  }
+
+  const apiStatus = document.getElementById('ratesApiStatus');
+  if (apiStatus) { apiStatus.style.display = 'none'; apiStatus.textContent = ''; }
+
+  openModal('ratesModal');
+}
+
+// Carrega tarifas na inicialização + a cada 8 horas
+(function initFreightRates() {
+  loadFreightRates(false);
+  setInterval(() => loadFreightRates(false), 8 * 60 * 60 * 1000);
+})();
+
+// ─── EXCHANGE RATE (AwesomeAPI — gratuito) ───────────────────────────────────
+let _xrateTimer = null;
+const XRATE_INTERVAL = 15 * 60 * 1000; // 15 min
+
+async function refreshExchangeRate(force = false) {
+  const spinIcon = document.getElementById('xrateSpinIcon');
+  if (spinIcon) spinIcon.style.animation = 'fa-spin 0.8s linear infinite';
+
+  try {
+    const res = await fetch('/api/vessels/exchange');
+    if (!res.ok) throw new Error('falha na resposta');
+    const d = await res.json();
+
+    const usdVal = parseFloat(d.USD_BRL);
+    const cnyVal = parseFloat(d.CNY_BRL);
+
+    // Atualiza campos de câmbio na aba Custos
+    const usdInput = document.getElementById('usdBrl');
+    const cnyInput = document.getElementById('cnyBrl');
+    if (usdInput) usdInput.value = usdVal.toFixed(4);
+    if (cnyInput) cnyInput.value = cnyVal.toFixed(4);
+
+    // Atualiza widget no header
+    const xrateUSD = document.getElementById('xrateUSD');
+    const xrateCNY = document.getElementById('xrateCNY');
+    const xrateTime = document.getElementById('xrateTime');
+    const xrateDot  = document.getElementById('xrateDot');
+    if (xrateUSD) xrateUSD.textContent = usdVal.toFixed(2);
+    if (xrateCNY) xrateCNY.textContent = cnyVal.toFixed(3);
+    if (xrateTime) {
+      const ts = d.updated_at ? new Date(d.updated_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      xrateTime.textContent = ts;
+    }
+    if (xrateDot) xrateDot.style.background = d.source === 'fallback' ? '#fa3' : '#3c9';
+
+    // Status na aba Custos
+    const xrateStatus = document.getElementById('xrateStatus');
+    if (xrateStatus) {
+      const ts = d.updated_at ? new Date(d.updated_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      const src = d.source === 'fallback' ? '⚠️ Fallback' : '✓ AwesomeAPI';
+      const high = d.USD_high ? ` | Max: ${parseFloat(d.USD_high).toFixed(2)}` : '';
+      const low  = d.USD_low  ? ` | Min: ${parseFloat(d.USD_low).toFixed(2)}`  : '';
+      xrateStatus.innerHTML = `<i class="fas fa-sync-alt"></i> ${src} — atualizado ${ts}${high}${low}`;
+      xrateStatus.style.color = d.source === 'fallback' ? '#fa3' : '#3c9';
+    }
+
+    if (force) notify('Câmbio atualizado em tempo real!', 'ok');
+  } catch (err) {
+    const xrateDot = document.getElementById('xrateDot');
+    if (xrateDot) xrateDot.style.background = '#c44';
+    const xrateStatus = document.getElementById('xrateStatus');
+    if (xrateStatus) { xrateStatus.textContent = '⚠️ Falha ao obter câmbio'; xrateStatus.style.color = '#c44'; }
+    if (force) notify('Falha ao atualizar câmbio', 'err');
+  } finally {
+    if (spinIcon) spinIcon.style.animation = '';
+  }
+}
+
+// Inicializa e agenda atualização a cada 15 min
+(function initExchangeRate() {
+  refreshExchangeRate(false);
+  setInterval(() => refreshExchangeRate(false), XRATE_INTERVAL);
+})();
+
+// ─── TRANSIT TIME PER OPERATION ─────────────────────────────────────────────
+const PORT_TO_SANTOS_DAYS = {
+  'Shanghai':              35,
+  'Ningbo-Zhoushan':       33,
+  'Shenzhen / Yantian':    28,
+  'Guangzhou / Nansha':    28,
+  'Tianjin':               40,
+  'Qingdao':               36,
+  'Xiamen':                30,
+  'Dalian':                42,
+};
+
+function calcOpTransit(route) {
+  // Trânsito interno: dist (km) / velocidade modal (km/h) → horas → dias
+  const distKm = parseFloat(route.dist) || 200;
+  const modal  = route.mod ? Object.keys(MODAL_SPEED).find(m => route.mod.toLowerCase().includes(m)) || 'road' : 'road';
+  const speedKmH = MODAL_SPEED[modal] || 65;
+  const internalDays = Math.max(1, Math.ceil(distKm / speedKmH / 24));
+
+  // Porto de embarque selecionado
+  const portDays    = 3; // CY cutoff + loading
+  const maritimeDays = PORT_TO_SANTOS_DAYS[selectedEmbarquePort] || 30;
+  const totalDays   = internalDays + portDays + maritimeDays;
+
+  return { internalDays, portDays, maritimeDays, totalDays };
+}
+
+// ─── OP ROUTES SECTION (Container tab) ──────────────────────────────────────
+let opRouteLines = {}; // id → leaflet LayerGroup
+
+function renderOpRoutesSection() {
+  const sec   = document.getElementById('opRoutesSection');
+  const list  = document.getElementById('opRoutesList');
+  const count = document.getElementById('opRoutesCount');
+  const transitSec = document.getElementById('transitSection');
+
+  if (!sec || !savedRoutes.length) {
+    if (sec) sec.style.display = 'none';
+    if (transitSec) transitSec.style.display = 'none';
+    return;
+  }
+  sec.style.display = '';
+  if (count) count.textContent = savedRoutes.length;
+
+  list.innerHTML = savedRoutes.map(r => {
+    const transit = calcOpTransit(r);
+    const col = ['#4ecdc4','#a29bfe','#fd79a8','#ffd93d','#ff6b6b','#55efc4'][r.id % 6];
+    return `
+    <div class="op-route-card">
+      <div class="op-route-header">
+        <div style="width:12px;height:12px;border-radius:50%;background:${col};flex-shrink:0"></div>
+        <div style="flex:1">
+          <div class="op-route-path">${r.ori} → ${r.dst}</div>
+          <div class="op-route-sub">${r.mod} · ${r.dist} · Ref: ${r.ref}</div>
+        </div>
+        ${r.oriLat ? `<button class="btn btn-ghost btn-sm" style="font-size:.65rem;padding:3px 7px" onclick="drawSingleOpRoute(${r.id})" title="Ver no mapa"><i class="fas fa-eye"></i></button>` : ''}
+      </div>
+      <div class="op-route-transit">
+        <span class="transit-pill internal"><i class="fas fa-truck"></i> ${transit.internalDays}d na China</span>
+        <span class="transit-pill port"><i class="fas fa-anchor"></i> ${transit.portDays}d porto</span>
+        <span class="transit-pill maritime"><i class="fas fa-ship"></i> ${transit.maritimeDays}d marítimo</span>
+        <span class="transit-pill total"><i class="fas fa-map-marker-alt"></i> ~${transit.totalDays}d até BR</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  renderTransitTimeline();
+}
+
+function renderTransitTimeline() {
+  const sec = document.getElementById('transitSection');
+  const tl  = document.getElementById('transitTimeline');
+  if (!sec || !tl || !savedRoutes.length) {
+    if (sec) sec.style.display = 'none';
+    return;
+  }
+  sec.style.display = '';
+
+  // Calcula a rota com maior tempo de trânsito interno (pior caso)
+  const transits = savedRoutes.map(r => calcOpTransit(r));
+  const maxInternal  = Math.max(...transits.map(t => t.internalDays));
+  const portDays     = 3;
+  const maritimeDays = PORT_TO_SANTOS_DAYS[selectedEmbarquePort] || 30;
+  const customsDays  = 10; // estimativa desembaraço BR
+  const totalDays    = maxInternal + portDays + maritimeDays + customsDays;
+
+  const portName = selectedEmbarquePort || 'Porto';
+
+  tl.innerHTML = `
+  <div class="transit-row">
+    <div class="transit-step">
+      <span class="transit-icon">🏭</span>
+      <span class="transit-days">Dia 0</span>
+      <span class="transit-lbl">Fábrica<br>Coleta</span>
+    </div>
+    <div class="transit-arrow">›</div>
+    <div class="transit-step">
+      <span class="transit-icon">🚛</span>
+      <span class="transit-days">+${maxInternal}d</span>
+      <span class="transit-lbl">Transporte<br>interno China</span>
+    </div>
+    <div class="transit-arrow">›</div>
+    <div class="transit-step">
+      <span class="transit-icon">⚓</span>
+      <span class="transit-days">+${portDays}d</span>
+      <span class="transit-lbl">Porto ${portName.split('/')[0].trim()}<br>CY / Embarque</span>
+    </div>
+    <div class="transit-arrow">›</div>
+    <div class="transit-step">
+      <span class="transit-icon">🚢</span>
+      <span class="transit-days">+${maritimeDays}d</span>
+      <span class="transit-lbl">Trânsito<br>marítimo</span>
+    </div>
+    <div class="transit-arrow">›</div>
+    <div class="transit-step">
+      <span class="transit-icon">🇧🇷</span>
+      <span class="transit-days">+${customsDays}d</span>
+      <span class="transit-lbl">Santos<br>Desembaraço</span>
+    </div>
+  </div>
+  <div class="transit-total-bar">
+    <div class="transit-total-row">
+      <span style="color:var(--muted)">Fábrica → Porto ${portName.split('/')[0].trim()}</span>
+      <span style="font-weight:700">~${maxInternal + portDays} dias</span>
+    </div>
+    <div class="transit-total-row">
+      <span style="color:var(--muted)">Trânsito marítimo (${portName.split('/')[0].trim()} → Santos)</span>
+      <span style="font-weight:700">${maritimeDays} dias</span>
+    </div>
+    <div class="transit-total-row">
+      <span style="color:var(--muted)">Desembaraço / Entrega no Brasil</span>
+      <span style="font-weight:700">~${customsDays} dias</span>
+    </div>
+    <div class="transit-total-row">
+      <span>ESTIMATIVA TOTAL (FÁBRICA → BRASIL)</span>
+      <span class="mval gld">~${totalDays} dias</span>
+    </div>
+    <div style="font-size:.65rem;color:var(--muted);margin-top:6px">
+      <i class="fas fa-info-circle"></i> Estimativa baseada em serviço direto. Tempo pode variar por temporada, congestionamento portuário e armador.
+    </div>
+  </div>`;
+}
+
+// ─── MAP ROUTE DRAWING FOR OPERATIONS ───────────────────────────────────────
+function drawSingleOpRoute(routeId) {
+  const r = savedRoutes.find(x => x.id === routeId);
+  if (!r || !r.oriLat) { notify('Coordenadas não disponíveis para esta rota', 'err'); return; }
+
+  const col = ['#4ecdc4','#a29bfe','#fd79a8','#ffd93d','#ff6b6b','#55efc4'][routeId % 6];
+
+  if (opRouteLines[routeId]) {
+    map.removeLayer(opRouteLines[routeId]);
+    delete opRouteLines[routeId];
+    notify(`Rota ${r.ref} removida do mapa`, 'ok');
+    return;
+  }
+
+  const url = `https://router.project-osrm.org/route/v1/driving/${r.oriLng},${r.oriLat};${r.dstLng},${r.dstLat}?overview=full&geometries=geojson`;
+
+  fetch(url, { signal: AbortSignal.timeout(7000) })
+    .then(res => res.json())
+    .then(data => {
+      const pts = data.routes?.[0]?.geometry?.coordinates?.map(c => [c[1], c[0]])
+        || buildOpCurve(r.oriLat, r.oriLng, r.dstLat, r.dstLng);
+      renderOpLine(routeId, pts, col, r.ref);
+    })
+    .catch(() => {
+      renderOpLine(routeId, buildOpCurve(r.oriLat, r.oriLng, r.dstLat, r.dstLng), col, r.ref);
+    });
+}
+
+function buildOpCurve(la1, ln1, la2, ln2) {
+  const pts = [];
+  for (let i = 0; i <= 60; i++) {
+    const t = i / 60;
+    pts.push([la1 + (la2 - la1) * t + Math.sin(t * Math.PI) * 1.2, ln1 + (ln2 - ln1) * t]);
+  }
+  return pts;
+}
+
+function renderOpLine(routeId, pts, col, label) {
+  opRouteLines[routeId] = L.layerGroup([
+    L.polyline(pts, { color: '#000', weight: 6, opacity: .2 }),
+    L.polyline(pts, { color: col,   weight: 3, opacity: .9, dashArray: '8,4' })
+      .bindTooltip(`<b style="color:${col}">${label}</b>`, { permanent: false }),
+  ]).addTo(map);
+  notify(`Rota ${label} exibida no mapa`, 'ok');
+}
+
+function showAllOpRoutes() {
+  const withCoords = savedRoutes.filter(r => r.oriLat);
+  if (!withCoords.length) { notify('Nenhuma rota com coordenadas disponível', 'err'); return; }
+
+  withCoords.forEach(r => {
+    if (!opRouteLines[r.id]) drawSingleOpRoute(r.id);
+  });
+
+  // Ajusta o mapa para mostrar todos os pontos
+  const allPts = withCoords.flatMap(r => [[r.oriLat, r.oriLng], [r.dstLat, r.dstLng]]);
+  if (allPts.length) map.fitBounds(L.latLngBounds(allPts).pad(0.15));
+  notify(`Mostrando ${withCoords.length} rota(s) no mapa`, 'ok');
+}
+
+function clearOpRouteLines() {
+  Object.values(opRouteLines).forEach(l => map.removeLayer(l));
+  opRouteLines = {};
+  notify('Linhas de rota removidas do mapa', 'ok');
+}
+
+// ─── VESSEL TRACKING SEARCH ─────────────────────────────────────────────────
+async function searchVessel() {
+  const input = document.getElementById('vesselSearchInput')?.value?.trim();
+  if (!input) { notify('Digite um nome, IMO ou MMSI', 'err'); return; }
+
+  const resultEl = document.getElementById('vesselResult');
+  if (resultEl) resultEl.innerHTML = `<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem"><i class="fas fa-circle-notch fa-spin"></i> Buscando vessel…</div>`;
+
+  // Detecta se é IMO (7 dígitos), MMSI (9 dígitos) ou nome
+  let params = '';
+  if (/^\d{9}$/.test(input))  params = `mmsi=${input}`;
+  else if (/^\d{7}$/.test(input)) params = `imo=${input}`;
+  else params = `q=${encodeURIComponent(input)}`;
+
+  try {
+    const res = await fetch(`/api/vessels/search?${params}`, { signal: AbortSignal.timeout(15000) });
+    const d = await res.json();
+
+    if (!d.configured) {
+      resultEl.innerHTML = `
+        <div class="vessel-no-key">
+          <div style="font-size:1.2rem;margin-bottom:6px">⚙️</div>
+          <div style="font-weight:700;color:var(--text);margin-bottom:6px">API de Rastreamento não configurada</div>
+          <div style="margin-bottom:8px">${d.hint || 'Configure VESSEL_API_KEY no arquivo .env'}</div>
+          <div>Providers suportados:</div>
+          <div style="margin-top:4px;line-height:1.9">
+            <code>vesselFinder</code> — VesselFinder (créditos €330+)<br>
+            <code>marineTraffic</code> — MarineTraffic (enterprise)<br>
+            <code>datalastic</code> — Datalastic (~€80/mês)
+          </div>
+        </div>`;
+      return;
+    }
+
+    if (d.error) throw new Error(d.error);
+
+    // Normaliza a resposta de diferentes providers
+    const vessels = normalizeVesselResponse(d.provider, d.data);
+    if (!vessels.length) {
+      resultEl.innerHTML = `<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem"><i class="fas fa-search"></i> Nenhum vessel encontrado para "${input}"</div>`;
+      return;
+    }
+
+    resultEl.innerHTML = vessels.slice(0, 3).map(v => `
+      <div class="vessel-card">
+        <div class="vessel-card-name">${v.name || '—'}</div>
+        <div class="vessel-card-flag">${v.flag || ''} ${v.type || 'Navio'} · IMO: ${v.imo || '—'} · MMSI: ${v.mmsi || '—'}</div>
+        <div class="vessel-info-row"><span class="vessel-lbl">Posição</span><span class="vessel-val">${v.lat && v.lng ? `${parseFloat(v.lat).toFixed(3)}°, ${parseFloat(v.lng).toFixed(3)}°` : '—'}</span></div>
+        <div class="vessel-info-row"><span class="vessel-lbl">Velocidade</span><span class="vessel-val">${v.speed !== undefined ? v.speed + ' nós' : '—'}</span></div>
+        <div class="vessel-info-row"><span class="vessel-lbl">Destino declarado</span><span class="vessel-val">${v.destination || '—'}</span></div>
+        <div class="vessel-info-row"><span class="vessel-lbl">ETA</span><span class="vessel-val">${v.eta || '—'}</span></div>
+        <div class="vessel-info-row"><span class="vessel-lbl">Status</span><span class="vessel-val">${v.status || '—'}</span></div>
+        ${v.lat && v.lng ? `<button class="btn btn-ghost" style="width:100%;font-size:.72rem;margin-top:8px" onclick="plotVesselOnMap(${v.lat},${v.lng},'${(v.name||'').replace(/'/g,"\\'")}')"><i class="fas fa-map-marker-alt"></i> Ver no Mapa</button>` : ''}
+      </div>`).join('');
+  } catch (err) {
+    resultEl.innerHTML = `<div style="text-align:center;padding:14px;color:#c44;font-size:.8rem"><i class="fas fa-exclamation-triangle"></i> Erro: ${err.message}</div>`;
+  }
+}
+
+function normalizeVesselResponse(provider, data) {
+  if (!data) return [];
+  try {
+    if (provider === 'vesselFinder') {
+      const arr = Array.isArray(data) ? data : (data.vessels || data.data || [data]);
+      return arr.map(v => ({
+        name: v.NAME || v.AIS?.NAME,
+        imo:  v.IMO  || v.AIS?.IMO,
+        mmsi: v.MMSI || v.AIS?.MMSI,
+        lat:  v.LAT  || v.AIS?.LATITUDE,
+        lng:  v.LON  || v.AIS?.LONGITUDE,
+        speed: v.SPEED || v.AIS?.SPEED,
+        destination: v.DESTINATION || v.AIS?.DESTINATION,
+        eta: v.ETA || v.AIS?.ETA,
+        flag: v.COUNTRYCODE || '',
+        type: v.TYPE || '',
+        status: v.STATUS || '',
+      }));
+    }
+    if (provider === 'marineTraffic') {
+      const arr = Array.isArray(data) ? data : (data.DATA || []);
+      return arr.map(v => ({
+        name: v.SHIPNAME, imo: v.IMO, mmsi: v.MMSI,
+        lat: v.LAT, lng: v.LON, speed: v.SPEED,
+        destination: v.DESTINATION, eta: v.ETA, flag: v.FLAG, type: v.TYPE,
+      }));
+    }
+    if (provider === 'datalastic') {
+      const arr = Array.isArray(data) ? data : (data.data ? [data.data] : []);
+      return arr.map(v => ({
+        name: v.name, imo: v.imo, mmsi: v.mmsi,
+        lat: v.latitude, lng: v.longitude, speed: v.speed,
+        destination: v.destination, eta: v.eta, flag: v.country_iso,
+        type: v.type, status: v.navigational_status,
+      }));
+    }
+  } catch { return []; }
+  return [];
+}
+
+function plotVesselOnMap(lat, lng, name) {
+  const vesselIcon = L.divIcon({
+    className: '',
+    html: `<div style="background:#e8b84b;color:#000;padding:4px 8px;border-radius:6px;font-size:.68rem;font-weight:800;white-space:nowrap;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)">🚢 ${name}</div>`,
+    iconAnchor: [40, 16],
+  });
+  const mk = L.marker([lat, lng], { icon: vesselIcon }).addTo(map);
+  mk.bindPopup(`<b>🚢 ${name}</b><br>${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)}`).openPopup();
+  map.setView([lat, lng], 5);
+  notify(`${name} plotado no mapa`, 'ok');
+}
 </script>
 </body>
 </html>
