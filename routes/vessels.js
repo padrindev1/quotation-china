@@ -1,6 +1,183 @@
 const express = require('express');
+const { body, param } = require('express-validator');
+const { getDb } = require('../db/database');
+const { handleValidationErrors } = require('../middleware/security');
 
 const router = express.Router();
+
+// ── FREIGHT RATE HELPERS ─────────────────────────────────────────────────────
+
+const PORTS = [
+  'Shanghai', 'Shenzhen / Yantian', 'Guangzhou / Nansha',
+  'Ningbo-Zhoushan', 'Tianjin', 'Qingdao', 'Xiamen', 'Dalian',
+];
+const CNT_TYPES = ['20gp', '40gp', '40hc', '45hc'];
+
+function dbRatesToMap(rows) {
+  const map = {};
+  rows.forEach(r => {
+    if (!map[r.port]) map[r.port] = {};
+    map[r.port][r.container_type] = {
+      rate_usd:   r.rate_usd,
+      source:     r.source,
+      notes:      r.notes || null,
+      updated_at: r.updated_at,
+      id:         r.id,
+    };
+  });
+  return map;
+}
+
+function rateAgeHours(updated_at) {
+  if (!updated_at) return Infinity;
+  return (Date.now() - new Date(updated_at).getTime()) / 3_600_000;
+}
+
+// ── GET /api/vessels/rates ────────────────────────────────────────────────────
+router.get('/rates', (req, res) => {
+  try {
+    const db   = getDb();
+    const rows = db.prepare('SELECT * FROM freight_rates ORDER BY port, container_type').all();
+    const map  = dbRatesToMap(rows);
+
+    const staleThresholdH = 7 * 24; // 7 days
+    let oldestUpdateAt  = null;
+    let newestUpdateAt  = null;
+    let hasStale        = false;
+
+    rows.forEach(r => {
+      if (!oldestUpdateAt || r.updated_at < oldestUpdateAt) oldestUpdateAt = r.updated_at;
+      if (!newestUpdateAt || r.updated_at > newestUpdateAt) newestUpdateAt = r.updated_at;
+      if (rateAgeHours(r.updated_at) > staleThresholdH) hasStale = true;
+    });
+
+    res.json({
+      rates:          map,
+      oldest_update:  oldestUpdateAt,
+      newest_update:  newestUpdateAt,
+      stale:          hasStale,
+      stale_threshold_days: 7,
+      total_entries:  rows.length,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── PUT /api/vessels/rates — bulk upsert ──────────────────────────────────────
+// Body: { rates: [{ port, container_type, rate_usd, notes? }] }
+router.put('/rates', [
+  body('rates').isArray({ min: 1, max: 200 }),
+  body('rates.*.port').trim().notEmpty().isLength({ max: 100 }),
+  body('rates.*.container_type').isIn(CNT_TYPES),
+  body('rates.*.rate_usd').isFloat({ min: 0, max: 99999 }),
+  body('rates.*.notes').optional().trim().isLength({ max: 500 }),
+], handleValidationErrors, (req, res) => {
+  try {
+    const db  = getDb();
+    const now = new Date().toISOString();
+    const upsert = db.prepare(`
+      INSERT INTO freight_rates (port, container_type, rate_usd, source, notes, updated_at)
+      VALUES (?, ?, ?, 'manual', ?, ?)
+      ON CONFLICT(port, container_type) DO UPDATE SET
+        rate_usd   = excluded.rate_usd,
+        source     = 'manual',
+        notes      = excluded.notes,
+        updated_at = excluded.updated_at
+    `);
+
+    req.body.rates.forEach(({ port, container_type, rate_usd, notes }) => {
+      upsert.run(port, container_type, rate_usd, notes || null, now);
+    });
+
+    const rows = db.prepare('SELECT * FROM freight_rates ORDER BY port, container_type').all();
+    res.json({ success: true, rates: dbRatesToMap(rows), updated_at: now });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/vessels/rates/refresh — external API or return instructions ─────
+router.post('/rates/refresh', async (req, res) => {
+  const apiKey  = process.env.FREIGHT_API_KEY;
+  const provider = process.env.FREIGHT_API_PROVIDER || 'searates';
+
+  if (!apiKey) {
+    return res.json({
+      configured: false,
+      hint: 'Configure FREIGHT_API_KEY e FREIGHT_API_PROVIDER no .env para buscar tarifas automaticamente.',
+      providers: [
+        { id: 'searates',  name: 'SeaRates',  url: 'https://www.searates.com/reference/api/' },
+        { id: 'freightos', name: 'Freightos', url: 'https://developer.freightos.com/' },
+      ],
+    });
+  }
+
+  try {
+    const db  = getDb();
+    const now = new Date().toISOString();
+    let fetched = 0;
+
+    if (provider === 'searates') {
+      // SeaRates FCL rates: China → Santos (BRSSZ)
+      // Endpoint: GET /rates?api_key=...&origin=...&destination=BRSSZ&container=...
+      const origins = [
+        { port: 'Shanghai',          locode: 'CNSHA' },
+        { port: 'Shenzhen / Yantian',locode: 'CNSZX' },
+        { port: 'Guangzhou / Nansha',locode: 'CNGZU' },
+        { port: 'Ningbo-Zhoushan',   locode: 'CNNGB' },
+        { port: 'Tianjin',           locode: 'CNTXG' },
+        { port: 'Qingdao',           locode: 'CNTAO' },
+        { port: 'Xiamen',            locode: 'CNXMN' },
+        { port: 'Dalian',            locode: 'CNDLC' },
+      ];
+
+      const upsert = db.prepare(`
+        INSERT INTO freight_rates (port, container_type, rate_usd, source, notes, updated_at)
+        VALUES (?, ?, ?, 'searates', ?, ?)
+        ON CONFLICT(port, container_type) DO UPDATE SET
+          rate_usd   = excluded.rate_usd,
+          source     = 'searates',
+          notes      = excluded.notes,
+          updated_at = excluded.updated_at
+      `);
+
+      for (const { port, locode } of origins) {
+        for (const type of CNT_TYPES) {
+          const eqType = { '20gp':'20DC', '40gp':'40DC', '40hc':'40HC', '45hc':'45HC' }[type];
+          const url = `https://www.searates.com/api/rates?api_key=${apiKey}&origin=${locode}&destination=BRSSZ&type=${eqType}&date=${now.slice(0,10)}`;
+          try {
+            const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
+            if (!r.ok) continue;
+            const data = await r.json();
+            const rate = data?.rates?.[0]?.total_price || data?.price || null;
+            if (rate && rate > 0) {
+              upsert.run(port, type, rate, `SeaRates ${now.slice(0,10)}`, now);
+              fetched++;
+            }
+          } catch { /* skip individual failures */ }
+        }
+      }
+    } else if (provider === 'freightos') {
+      return res.json({
+        configured: true,
+        provider: 'freightos',
+        error: 'Freightos requer conta business — contate sales@freightos.com',
+      });
+    }
+
+    const rows = db.prepare('SELECT * FROM freight_rates ORDER BY port, container_type').all();
+    res.json({
+      success: true,
+      provider,
+      fetched,
+      rates: dbRatesToMap(rows),
+      updated_at: now,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ── In-memory caches ──────────────────────────────────────────────────────────
 let exchangeCache = null;

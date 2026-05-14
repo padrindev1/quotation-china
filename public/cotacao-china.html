@@ -216,6 +216,31 @@ select option{background:#111c2b}
 .summary-table td{padding:5px 8px;border-bottom:1px solid var(--border)}
 .summary-table tr:hover td{background:rgba(255,255,255,.03)}
 .color-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+/* ── FREIGHT RATES MODAL ── */
+.rates-modal-box{background:#111c2b;border:1px solid #2a4060;border-radius:10px;padding:22px;width:800px;max-width:98vw;max-height:90vh;overflow-y:auto}
+.rates-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:10px}
+.rates-table th{background:#0a1420;color:var(--gold);padding:7px 9px;text-align:center;font-weight:700;border-bottom:2px solid var(--border);white-space:nowrap}
+.rates-table th:first-child{text-align:left}
+.rates-table td{padding:5px 7px;border-bottom:1px solid var(--border);vertical-align:middle}
+.rates-table tr:hover td{background:rgba(255,255,255,.02)}
+.rates-table td:first-child{font-weight:600;white-space:nowrap;color:var(--text)}
+.rate-input{width:80px;background:#090e18;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:4px 6px;font-size:.78rem;text-align:right}
+.rate-input:focus{border-color:var(--gold);outline:none}
+.rate-input.stale{border-color:#fa3;color:#fa3}
+.rate-age{font-size:.6rem;color:var(--muted);display:block;text-align:center;margin-top:2px;line-height:1.2}
+.rate-age.fresh{color:#3c9}
+.rate-age.warn{color:#fa3}
+.rate-age.stale{color:#c44}
+.rate-source-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:10px;font-size:.6rem;font-weight:600}
+.rate-source-manual{background:rgba(100,100,100,.15);color:#888;border:1px solid #333}
+.rate-source-api{background:rgba(51,204,153,.1);color:#3c9;border:1px solid rgba(51,204,153,.3)}
+.rate-source-seed{background:rgba(100,100,255,.1);color:#7af;border:1px solid rgba(100,100,255,.3)}
+/* ── RATES STATUS BAR ── */
+.rates-status-bar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(13,21,32,.7);border:1px solid var(--border);border-radius:6px;font-size:.7rem;margin-bottom:8px;flex-wrap:wrap}
+.rates-status-bar.stale{border-color:#fa3}
+.rates-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.rates-dot.fresh{background:#3c9}
+.rates-dot.stale{background:#fa3;animation:pulse 2s infinite}
 /* ── EXCHANGE RATE WIDGET ── */
 .xrate-widget{display:flex;align-items:center;gap:8px;padding:4px 10px;background:rgba(13,21,32,.85);border:1px solid var(--border);border-radius:6px;font-size:.7rem;cursor:pointer;white-space:nowrap;transition:.2s}
 .xrate-widget:hover{border-color:var(--gold)}
@@ -691,12 +716,37 @@ select option{background:#111c2b}
 
       <!-- Tarifas de frete marítimo -->
       <div class="sec">
-        <div class="sec-ttl"><i class="fas fa-ship" style="color:var(--gold)"></i> Frete Marítimo (USD / container)</div>
+        <div class="sec-ttl">
+          <i class="fas fa-ship" style="color:var(--gold)"></i> Frete Marítimo (USD / container)
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto;font-size:.68rem;padding:3px 9px" onclick="openRatesModal()">
+            <i class="fas fa-edit"></i> Gerenciar
+          </button>
+        </div>
+        <!-- Status bar das tarifas -->
+        <div class="rates-status-bar" id="ratesStatusBar">
+          <div class="rates-dot fresh" id="ratesDot"></div>
+          <span id="ratesStatusText" style="flex:1;color:var(--muted)">Carregando tarifas…</span>
+          <button class="btn btn-ghost btn-sm" style="font-size:.65rem;padding:3px 7px" onclick="loadFreightRates(true)">
+            <i class="fas fa-sync-alt" id="ratesRefreshIcon"></i>
+          </button>
+        </div>
         <div class="freight-rates">
-          <div><div class="lbl">20' GP</div><input type="number" id="f20gp" value="950" min="0" step="50" oninput="refreshCntStats()"></div>
-          <div><div class="lbl">40' GP</div><input type="number" id="f40gp" value="1400" min="0" step="50" oninput="refreshCntStats()"></div>
-          <div><div class="lbl">40' HC</div><input type="number" id="f40hc" value="1550" min="0" step="50" oninput="refreshCntStats()"></div>
-          <div><div class="lbl">45' HC</div><input type="number" id="f45hc" value="1750" min="0" step="50" oninput="refreshCntStats()"></div>
+          <div>
+            <div class="lbl">20' GP <span id="src20gp" class="rate-source-badge rate-source-seed" style="float:right"></span></div>
+            <input type="number" id="f20gp" value="950" min="0" step="50" oninput="refreshCntStats()">
+          </div>
+          <div>
+            <div class="lbl">40' GP <span id="src40gp" class="rate-source-badge rate-source-seed" style="float:right"></span></div>
+            <input type="number" id="f40gp" value="1400" min="0" step="50" oninput="refreshCntStats()">
+          </div>
+          <div>
+            <div class="lbl">40' HC <span id="src40hc" class="rate-source-badge rate-source-seed" style="float:right"></span></div>
+            <input type="number" id="f40hc" value="1550" min="0" step="50" oninput="refreshCntStats()">
+          </div>
+          <div>
+            <div class="lbl">45' HC <span id="src45hc" class="rate-source-badge rate-source-seed" style="float:right"></span></div>
+            <input type="number" id="f45hc" value="1750" min="0" step="50" oninput="refreshCntStats()">
+          </div>
         </div>
       </div>
 
@@ -972,6 +1022,53 @@ select option{background:#111c2b}
 </div>
 
 </div><!-- /app -->
+
+<!-- FREIGHT RATES MODAL -->
+<div class="overlay" id="ratesModal">
+  <div class="rates-modal-box">
+    <div class="mbox-ttl" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <i class="fas fa-ship" style="color:var(--gold)"></i>
+      <span style="flex:1">Gerenciar Tarifas de Frete Marítimo (USD / container)</span>
+      <div id="ratesModalSource" style="font-size:.68rem;color:var(--muted)"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn btn-gold" style="flex:1;font-size:.78rem" onclick="saveFreightRates()">
+        <i class="fas fa-save"></i> Salvar Tarifas
+      </button>
+      <button class="btn btn-ghost" style="font-size:.78rem" onclick="refreshFreightFromAPI()" id="btnApiRefresh">
+        <i class="fas fa-cloud-download-alt"></i> Buscar via API
+      </button>
+      <button class="btn btn-ghost" style="font-size:.78rem" onclick="closeModal('ratesModal')">
+        <i class="fas fa-times"></i> Fechar
+      </button>
+    </div>
+
+    <div id="ratesApiStatus" style="display:none;margin-bottom:10px;padding:8px 10px;border-radius:6px;font-size:.75rem"></div>
+
+    <div style="overflow-x:auto">
+      <table class="rates-table" id="ratesTable">
+        <thead>
+          <tr>
+            <th>Porto de Embarque</th>
+            <th>20' GP</th>
+            <th>40' GP</th>
+            <th>40' HC</th>
+            <th>45' HC</th>
+          </tr>
+        </thead>
+        <tbody id="ratesTableBody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:14px;padding:10px;background:#090e18;border-radius:6px;font-size:.68rem;color:var(--muted)">
+      <i class="fas fa-info-circle" style="color:var(--gold)"></i>
+      Tarifas indicativas China → Santos (BR). Atualização recomendada semanal.
+      Sem <code style="color:var(--gold)">FREIGHT_API_KEY</code>: edite manualmente abaixo.
+      Com chave: clique em "Buscar via API" para atualizar automaticamente.
+    </div>
+  </div>
+</div>
 
 <!-- CFG MODAL -->
 <div class="overlay" id="cfgModal">
@@ -2592,7 +2689,8 @@ function changeEmbarquePort(portName){
   updateFreightRates();
   refreshCntStats();
   renderPortComparison();
-  renderCntRoutesList();   // atualiza tempos de trânsito
+  renderCntRoutesList();
+  if (_freightRatesDB?.rates) updateRateSourceBadges(_freightRatesDB.rates);
   notify(`Porto alterado para: ${portName}`,'ok');
 }
 
@@ -2867,6 +2965,239 @@ window.addEventListener('load', ()=>{
 document.addEventListener('click',e=>{
   if(e.target.classList.contains('overlay')) e.target.classList.remove('show');
 });
+
+// ─── FREIGHT RATES — gerenciamento DB ───────────────────────────────────────
+
+let _freightRatesDB = null; // cache local dos dados do backend
+
+const RATE_PORTS = [
+  'Shanghai','Shenzhen / Yantian','Guangzhou / Nansha',
+  'Ningbo-Zhoushan','Tianjin','Qingdao','Xiamen','Dalian',
+];
+const RATE_TYPES = ['20gp','40gp','40hc','45hc'];
+
+async function loadFreightRates(force = false) {
+  const icon = document.getElementById('ratesRefreshIcon');
+  if (icon) icon.style.animation = 'fa-spin 0.8s linear infinite';
+
+  try {
+    const res = await fetch('/api/vessels/rates');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const d = await res.json();
+    _freightRatesDB = d;
+
+    // Atualiza PORT_FREIGHT_RATES em memória com valores do banco
+    if (d.rates) {
+      Object.entries(d.rates).forEach(([port, types]) => {
+        if (!PORT_FREIGHT_RATES[port]) PORT_FREIGHT_RATES[port] = {};
+        Object.entries(types).forEach(([type, info]) => {
+          PORT_FREIGHT_RATES[port][type] = info.rate_usd;
+        });
+      });
+    }
+
+    // Atualiza campos do porto selecionado
+    updateFreightRates();
+
+    // Atualiza badges de source para o porto selecionado
+    updateRateSourceBadges(d.rates);
+
+    // Atualiza status bar
+    updateRatesStatusBar(d);
+
+    if (force) notify('Tarifas de frete atualizadas do banco!', 'ok');
+  } catch (err) {
+    const bar = document.getElementById('ratesStatusBar');
+    if (bar) bar.classList.add('stale');
+    const dot = document.getElementById('ratesDot');
+    if (dot) { dot.className = 'rates-dot stale'; }
+    const txt = document.getElementById('ratesStatusText');
+    if (txt) txt.textContent = '⚠️ Falha ao carregar tarifas';
+    if (force) notify('Falha ao carregar tarifas: ' + err.message, 'err');
+  } finally {
+    if (icon) icon.style.animation = '';
+  }
+}
+
+function updateRatesStatusBar(d) {
+  const bar = document.getElementById('ratesStatusBar');
+  const dot = document.getElementById('ratesDot');
+  const txt = document.getElementById('ratesStatusText');
+  if (!bar || !dot || !txt) return;
+
+  const isStale = d.stale;
+  bar.classList.toggle('stale', isStale);
+  dot.className = 'rates-dot ' + (isStale ? 'stale' : 'fresh');
+
+  let dateStr = '—';
+  if (d.newest_update) {
+    const dt = new Date(d.newest_update);
+    const diff = Math.floor((Date.now() - dt.getTime()) / 86400000);
+    dateStr = diff === 0 ? 'hoje' : diff === 1 ? 'ontem' : `há ${diff} dias`;
+  }
+
+  const staleWarn = isStale ? ' ⚠️ Desatualizado — recomenda-se atualizar' : '';
+  txt.innerHTML = `<i class="fas fa-database"></i> ${d.total_entries || 0} tarifas · atualizado ${dateStr}${staleWarn}`;
+  txt.style.color = isStale ? '#fa3' : 'var(--muted)';
+}
+
+function updateRateSourceBadges(rates) {
+  if (!rates || !selectedEmbarquePort) return;
+  const portRates = rates[selectedEmbarquePort] || {};
+  RATE_TYPES.forEach(type => {
+    const el = document.getElementById(`src${type.replace(/'/g,'').toLowerCase()}`);
+    if (!el) return;
+    const info = portRates[type];
+    if (!info) { el.textContent = ''; return; }
+    const src = info.source || 'manual';
+    el.className = `rate-source-badge rate-source-${src}`;
+    el.textContent = src === 'api' ? '🔗 API' : src === 'seed' ? 'padrão' : 'manual';
+  });
+}
+
+async function saveFreightRates() {
+  const tbody = document.getElementById('ratesTableBody');
+  if (!tbody) return;
+
+  const rates = [];
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const port = tr.dataset.port;
+    if (!port) return;
+    RATE_TYPES.forEach(type => {
+      const inp = tr.querySelector(`input[data-type="${type}"]`);
+      const val = parseFloat(inp?.value || 0);
+      if (val > 0) rates.push({ port, container_type: type, rate_usd: val });
+    });
+  });
+
+  if (!rates.length) { notify('Nenhuma tarifa para salvar', 'err'); return; }
+
+  try {
+    const res = await fetch('/api/vessels/rates', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rates }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const d = await res.json();
+    _freightRatesDB = d;
+
+    // Atualiza memória e campos
+    if (d.rates) {
+      Object.entries(d.rates).forEach(([port, types]) => {
+        if (!PORT_FREIGHT_RATES[port]) PORT_FREIGHT_RATES[port] = {};
+        Object.entries(types).forEach(([type, info]) => {
+          PORT_FREIGHT_RATES[port][type] = info.rate_usd;
+        });
+      });
+    }
+    updateFreightRates();
+    updateRateSourceBadges(d.rates);
+
+    closeModal('ratesModal');
+    notify(`${rates.length} tarifas salvas com sucesso!`, 'ok');
+  } catch (err) {
+    notify('Erro ao salvar tarifas: ' + err.message, 'err');
+  }
+}
+
+async function refreshFreightFromAPI() {
+  const btn    = document.getElementById('btnApiRefresh');
+  const status = document.getElementById('ratesApiStatus');
+  if (btn) btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Buscando…';
+  if (status) { status.style.display = ''; status.textContent = 'Consultando API…'; status.style.background = 'rgba(232,184,75,.08)'; status.style.color = '#fa3'; }
+
+  try {
+    const res = await fetch('/api/vessels/rates/refresh', { method: 'POST' });
+    const d = await res.json();
+
+    if (!d.configured) {
+      status.style.background = 'rgba(100,100,255,.08)';
+      status.style.color = '#a29bfe';
+      status.innerHTML = `<i class="fas fa-info-circle"></i> <strong>API não configurada.</strong> ${d.hint}<br>
+        <span style="font-size:.65rem;margin-top:4px;display:block">Providers: ${(d.providers||[]).map(p=>`<a href="${p.url}" target="_blank" style="color:#a29bfe">${p.name}</a>`).join(' · ')}</span>`;
+      return;
+    }
+
+    if (d.error) throw new Error(d.error);
+
+    // Atualiza modal com novas tarifas
+    if (d.rates) {
+      _freightRatesDB = d;
+      Object.entries(d.rates).forEach(([port, types]) => {
+        if (!PORT_FREIGHT_RATES[port]) PORT_FREIGHT_RATES[port] = {};
+        Object.entries(types).forEach(([type, info]) => {
+          PORT_FREIGHT_RATES[port][type] = info.rate_usd;
+          const inp = document.querySelector(`#ratesTableBody tr[data-port="${port}"] input[data-type="${type}"]`);
+          if (inp) { inp.value = info.rate_usd; inp.classList.remove('stale'); }
+        });
+      });
+    }
+
+    status.style.background = 'rgba(51,204,153,.08)';
+    status.style.color = '#3c9';
+    status.innerHTML = `<i class="fas fa-check-circle"></i> ${d.fetched || 0} tarifas atualizadas via ${d.provider}.`;
+    notify(`${d.fetched || 0} tarifas atualizadas via API!`, 'ok');
+  } catch (err) {
+    status.style.background = 'rgba(200,50,50,.08)';
+    status.style.color = '#c44';
+    status.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Erro: ${err.message}`;
+    notify('Falha ao buscar via API: ' + err.message, 'err');
+  } finally {
+    if (btn) btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Buscar via API';
+  }
+}
+
+function openRatesModal() {
+  const tbody = document.getElementById('ratesTableBody');
+  if (!tbody) return;
+
+  const rates    = _freightRatesDB?.rates || {};
+  const staleH   = 7 * 24;
+
+  tbody.innerHTML = RATE_PORTS.map(port => {
+    const cells = RATE_TYPES.map(type => {
+      const info   = rates[port]?.[type];
+      const val    = info?.rate_usd ?? (PORT_FREIGHT_RATES[port]?.[type] || 0);
+      const ageH   = info ? (Date.now() - new Date(info.updated_at).getTime()) / 3_600_000 : Infinity;
+      const ageClass = ageH < 24 ? 'fresh' : ageH < staleH ? '' : 'stale';
+      const ageTxt = ageH < 1 ? 'agora' : ageH < 24 ? `${Math.floor(ageH)}h atrás` :
+                     ageH < 168 ? `${Math.floor(ageH/24)}d atrás` : `${Math.floor(ageH/168)}sem atrás`;
+      const isStale = ageH >= staleH;
+      return `<td style="text-align:center">
+        <input class="rate-input${isStale?' stale':''}" type="number" value="${val}" min="0" step="50" data-type="${type}">
+        <span class="rate-age ${ageClass}">${info ? ageTxt : '—'}</span>
+      </td>`;
+    }).join('');
+
+    const portRates  = rates[port] || {};
+    const sources    = [...new Set(Object.values(portRates).map(v => v?.source).filter(Boolean))];
+    const srcLabel   = sources.map(s =>
+      `<span class="rate-source-badge rate-source-${s}" style="margin-left:3px">${s === 'api' ? '🔗 API' : s === 'seed' ? 'padrão' : s}</span>`
+    ).join('');
+
+    return `<tr data-port="${port}"><td>${port}${srcLabel}</td>${cells}</tr>`;
+  }).join('');
+
+  const src = document.getElementById('ratesModalSource');
+  if (src && _freightRatesDB?.newest_update) {
+    const dt   = new Date(_freightRatesDB.newest_update);
+    const diff = Math.floor((Date.now() - dt.getTime()) / 86400000);
+    const when = diff === 0 ? 'hoje' : diff === 1 ? 'ontem' : `há ${diff} dias`;
+    src.textContent = `Última atualização: ${when}`;
+  }
+
+  const apiStatus = document.getElementById('ratesApiStatus');
+  if (apiStatus) { apiStatus.style.display = 'none'; apiStatus.textContent = ''; }
+
+  openModal('ratesModal');
+}
+
+// Carrega tarifas na inicialização + a cada 8 horas
+(function initFreightRates() {
+  loadFreightRates(false);
+  setInterval(() => loadFreightRates(false), 8 * 60 * 60 * 1000);
+})();
 
 // ─── EXCHANGE RATE (AwesomeAPI — gratuito) ───────────────────────────────────
 let _xrateTimer = null;

@@ -248,6 +248,19 @@ function initializeDatabase() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS freight_rates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      port TEXT NOT NULL,
+      container_type TEXT NOT NULL CHECK(container_type IN ('20gp','40gp','40hc','45hc')),
+      rate_usd REAL NOT NULL,
+      source TEXT NOT NULL DEFAULT 'manual',
+      notes TEXT,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(port, container_type)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_freight_rates_port ON freight_rates(port);
+
     CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
     CREATE INDEX IF NOT EXISTS idx_payments_due_date ON payments(due_date);
     CREATE INDEX IF NOT EXISTS idx_customs_status ON customs_processes(status);
@@ -287,6 +300,29 @@ function initializeDatabase() {
       );
     });
     console.log('✓ Fornecedores ZAP semeados');
+  }
+
+  const rateCount = db.prepare('SELECT COUNT(*) AS c FROM freight_rates').get();
+  if (!rateCount.c) {
+    const DEFAULT_RATES = {
+      'Shanghai':           { '20gp':1100, '40gp':1600, '40hc':1800, '45hc':2000 },
+      'Shenzhen / Yantian': { '20gp':950,  '40gp':1350, '40hc':1500, '45hc':1700 },
+      'Guangzhou / Nansha': { '20gp':950,  '40gp':1400, '40hc':1550, '45hc':1750 },
+      'Ningbo-Zhoushan':    { '20gp':1000, '40gp':1450, '40hc':1600, '45hc':1800 },
+      'Tianjin':            { '20gp':1050, '40gp':1500, '40hc':1650, '45hc':1850 },
+      'Qingdao':            { '20gp':1050, '40gp':1500, '40hc':1650, '45hc':1850 },
+      'Xiamen':             { '20gp':850,  '40gp':1200, '40hc':1350, '45hc':1500 },
+      'Dalian':             { '20gp':1100, '40gp':1600, '40hc':1750, '45hc':1950 },
+    };
+    const ins = db.prepare(
+      'INSERT OR IGNORE INTO freight_rates (port, container_type, rate_usd, source) VALUES (?, ?, ?, ?)'
+    );
+    for (const [port, types] of Object.entries(DEFAULT_RATES)) {
+      for (const [type, rate] of Object.entries(types)) {
+        ins.run(port, type, rate, 'seed');
+      }
+    }
+    console.log('✓ Tarifas de frete semeadas (8 portos × 4 tipos)');
   }
 
   console.log('✓ Banco de dados inicializado');
