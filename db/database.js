@@ -2,7 +2,9 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'erp.db');
+// Em Vercel/serverless, usar /tmp (único dir gravável); local usa data/erp.db
+const DB_PATH = process.env.DB_PATH ||
+  (process.env.VERCEL ? '/tmp/erp.db' : path.join(__dirname, '..', 'data', 'erp.db'));
 
 let db = null;
 

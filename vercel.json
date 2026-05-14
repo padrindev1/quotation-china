@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "name": "quotation-china",
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/",
+      "dest": "/public/cotacao-china.html"
+    },
+    {
+      "src": "/(cotacao-china\\.html)?",
+      "dest": "/public/cotacao-china.html"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/public/dashboard.html"
+    },
+    {
+      "src": "/login",
+      "dest": "/public/login.html"
+    },
+    {
+      "src": "/suppliers",
+      "dest": "/public/suppliers.html"
+    },
+    {
+      "src": "/payments",
+      "dest": "/public/payments.html"
+    },
+    {
+      "src": "/customs",
+      "dest": "/public/customs.html"
+    },
+    {
+      "src": "/notifications",
+      "dest": "/public/notifications.html"
+    },
+    {
+      "src": "/users",
+      "dest": "/public/users.html"
+    },
+    {
+      "src": "/import",
+      "dest": "/public/import.html"
+    },
+    {
+      "src": "/(css|js|images)/(.*)",
+      "dest": "/public/$1/$2"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
