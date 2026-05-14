@@ -1,11 +1,15 @@
 {
-  "name": "oktz-erp-importacao",
+  "name": "quotation-china",
   "version": "1.0.0",
-  "description": "ERP Interno - Setor de Importação OKTZ",
+  "description": "China Import Quotation Tool — OKTZ ERP",
   "main": "server.js",
+  "engines": {
+    "node": ">=18.x"
+  },
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "vercel-build": "echo 'Static build — no bundling required'"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

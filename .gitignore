@@ -1,11 +1,11 @@
-# 🔒 Git Ignore - OKTZ ERP
+# 🔒 Git Ignore - OKTZ ERP / Quotation China
 
 # ─── NODE & NPM ────────────────────────
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+# package-lock.json NÃO ignorado — Vercel precisa para builds deterministas
 yarn.lock
 .npm
 
@@ -14,6 +14,7 @@ yarn.lock
 .env.local
 .env.*.local
 .env.production.local
+# .env.example é commitado (sem segredos reais)
 
 # ─── DATABASE ────────────────────────────
 *.db
@@ -56,6 +57,9 @@ build/
 coverage/
 .nyc_output/
 
+# ─── VERCEL ───────────────────────────────
+.vercel/
+
 # ─── SECURITY ──────────────────────────────
 credentials.json
 apikey.json
@@ -69,8 +73,12 @@ token.json
 *.tmp
 temp/
 tmp/
+__pycache__/
+*.py[cod]
 
 # ─── CUSTOM ───────────────────────────────
 passwords.txt
 api-keys.txt
 database-backups/
+email_scraper.py
+start.bat
