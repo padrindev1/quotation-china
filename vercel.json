@@ -57,7 +57,7 @@
       "dest": "/public/import.html"
     },
     {
-      "src": "/(css|js|images)/(.*)",
+      "src": "/(css|js|images|templates)/(.*)",
       "dest": "/public/$1/$2"
     }
   ],
