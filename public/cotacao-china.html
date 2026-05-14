@@ -283,6 +283,32 @@ select option{background:#111c2b}
 .vessel-val{font-weight:600;color:var(--text)}
 .vessel-no-key{background:rgba(232,184,75,.06);border:1px dashed rgba(232,184,75,.4);border-radius:8px;padding:12px;text-align:center;font-size:.75rem;color:var(--muted)}
 .vessel-no-key code{background:#0a0e18;padding:2px 6px;border-radius:4px;color:var(--gold);font-size:.7rem}
+/* ── CSV IMPORT REDESIGN ── */
+.csv-import-sec{background:rgba(13,21,35,.6);border:1px solid #2a4060;border-radius:10px;padding:14px}
+.csv-import-actions{display:flex;gap:7px;margin-bottom:10px}
+.csv-import-actions .btn{flex:1;font-size:.74rem;padding:8px 10px;white-space:nowrap}
+.btn-tpl{background:rgba(34,187,119,.1);border:1px solid rgba(34,187,119,.35);color:#22bb77}
+.btn-tpl:hover{background:rgba(34,187,119,.2);border-color:#22bb77}
+.csv-upload-row{display:flex;gap:7px;margin-bottom:8px}
+.csv-upload-row input[type=file]{flex:1;padding:7px 11px;background:#090e18;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.78rem;cursor:pointer}
+.csv-guide-box{background:#0a0e18;border:1px solid #1e3050;border-radius:7px;padding:10px 12px;margin-bottom:8px;font-size:.68rem;color:var(--muted)}
+.csv-guide-box h4{color:var(--gold);font-size:.73rem;margin:0 0 8px;font-weight:600}
+.csv-guide-fields{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;margin-bottom:8px}
+.csv-field{display:flex;gap:5px;align-items:baseline}
+.csv-field code{background:#111c2b;color:#7dd3fc;padding:1px 5px;border-radius:3px;font-size:.65rem;white-space:nowrap}
+.csv-field span{color:#8899aa;font-size:.65rem}
+.csv-field-req code{color:#e8b84b}
+.csv-enum{color:#6b7a8d;font-size:.63rem;font-style:italic;margin-top:4px}
+.csv-nav-panel{background:rgba(232,184,75,.07);border:1px solid rgba(232,184,75,.2);border-radius:7px;padding:10px 12px;margin-top:8px}
+.csv-nav-info{font-size:.72rem;color:var(--muted);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.csv-nav-badge{background:rgba(232,184,75,.18);color:var(--gold);border-radius:12px;padding:1px 9px;font-weight:700;font-size:.73rem}
+.csv-nav-name{color:var(--text);font-size:.75rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csv-nav-btns{display:flex;gap:6px}
+.csv-nav-btns .btn{flex:1;font-size:.74rem;padding:6px 8px}
+.csv-format-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:.65rem;font-weight:600}
+.csv-format-badge.oktz{background:rgba(34,187,119,.15);color:#22bb77;border:1px solid rgba(34,187,119,.3)}
+.csv-format-badge.legacy{background:rgba(232,184,75,.12);color:#e8b84b;border:1px solid rgba(232,184,75,.25)}
+
 /* ── PRINT ── */
 @media print{
   #hdr{background:#fff!important;color:#000!important;border-bottom:2px solid #333}
@@ -341,22 +367,48 @@ select option{background:#111c2b}
       <!-- CSV IMPORT -->
       <div class="sec">
         <div class="sec-ttl"><i class="fas fa-file-csv" style="color:var(--gold)"></i> Importar de CSV</div>
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <input type="file" id="csvFile" accept=".csv" style="flex:1;padding:7px 11px;background:#090e18;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.82rem;cursor:pointer">
-          <button class="btn btn-gold" style="padding:7px 14px;white-space:nowrap" onclick="importCSV()"><i class="fas fa-upload"></i> Importar</button>
-        </div>
-        <button class="btn btn-ghost" style="width:100%;font-size:.72rem;margin-bottom:8px" onclick="toggleCSVDebug()"><i class="fas fa-bug"></i> Ver Estrutura do CSV</button>
-        <div id="csvDebug" style="display:none;background:#0a0e18;border:1px solid #2a4060;border-radius:6px;padding:8px;margin-bottom:10px;max-height:300px;overflow:auto;font-size:.65rem;font-family:monospace;color:#aaa"></div>
-        <div id="csvStatus" style="font-size:.7rem;color:var(--muted);display:none"></div>
-        <div id="supplierNav" style="display:none;margin-top:10px;padding:8px 10px;background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.2);border-radius:6px">
-          <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px">
-            Fornecedor <span id="currentSupplier">1</span> de <span id="totalSuppliers">5</span>: <span id="supplierName">—</span>
+        <div class="csv-import-sec">
+          <div class="csv-import-actions">
+            <button class="btn btn-tpl" onclick="downloadCSVTemplate()"><i class="fas fa-download"></i> Baixar Planilha Modelo</button>
+            <button class="btn btn-ghost" onclick="toggleCsvGuide()" id="btnCsvGuide"><i class="fas fa-question-circle"></i> Ver Formato</button>
           </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost" style="flex:1;font-size:.75rem;padding:6px 10px" id="prevSupBtn" onclick="navigateSupplier(-1)" style="display:none"><i class="fas fa-chevron-left"></i> Anterior</button>
-            <button class="btn btn-ghost" style="flex:1;font-size:.75rem;padding:6px 10px" id="nextSupBtn" onclick="navigateSupplier(1)"><i class="fas fa-chevron-right"></i> Próximo</button>
+          <div id="csvGuideBox" class="csv-guide-box" style="display:none">
+            <h4><i class="fas fa-table"></i> Formato OKTZ — Campos da Planilha</h4>
+            <div class="csv-guide-fields">
+              <div class="csv-field csv-field-req"><code>referencia</code><span>REF da operação <em>(obrig.)</em></span></div>
+              <div class="csv-field"><code>descricao</code><span>Descrição livre</span></div>
+              <div class="csv-field"><code>oc</code><span>Número da OC</span></div>
+              <div class="csv-field csv-field-req"><code>origem</code><span>Cidade origem <em>(obrig.)</em></span></div>
+              <div class="csv-field"><code>tipo_origem</code><span>factory | warehouse | port</span></div>
+              <div class="csv-field csv-field-req"><code>destino</code><span>Cidade destino <em>(obrig.)</em></span></div>
+              <div class="csv-field"><code>tipo_destino</code><span>port | warehouse | city</span></div>
+              <div class="csv-field csv-field-req"><code>modal</code><span>road | rail | river | air</span></div>
+              <div class="csv-field"><code>peso_kg</code><span>Peso total (KG)</span></div>
+              <div class="csv-field"><code>volume_m3</code><span>Volume (m³)</span></div>
+              <div class="csv-field"><code>qtd_containers</code><span>Qtd. containers</span></div>
+              <div class="csv-field"><code>tipo_container</code><span>20gp | 40gp | 40hc | 45hc</span></div>
+            </div>
+            <div class="csv-enum">Itens (até 5): <code>item_N_desc</code>, <code>item_N_qtd</code>, <code>item_N_un</code> (UN|KG|M|M2|M3|CX|PC), <code>item_N_usd</code></div>
+            <div class="csv-enum" style="margin-top:4px">Suporte legado: formatos anteriores de planilha ZAP também são reconhecidos automaticamente.</div>
+          </div>
+          <div class="csv-upload-row">
+            <input type="file" id="csvFile" accept=".csv">
+            <button class="btn btn-gold" style="padding:7px 14px;white-space:nowrap" onclick="importCSV()"><i class="fas fa-upload"></i> Importar</button>
+          </div>
+          <div id="csvStatus" style="font-size:.7rem;color:var(--muted);display:none;margin-bottom:4px"></div>
+          <div id="supplierNav" class="csv-nav-panel" style="display:none">
+            <div class="csv-nav-info">
+              <span class="csv-nav-badge" id="csvNavBadge">1/5</span>
+              <span class="csv-nav-name" id="supplierName">—</span>
+              <span id="csvFormatBadge"></span>
+            </div>
+            <div class="csv-nav-btns">
+              <button class="btn btn-ghost" id="prevSupBtn" style="display:none" onclick="navigateSupplier(-1)"><i class="fas fa-chevron-left"></i> Anterior</button>
+              <button class="btn btn-ghost" id="nextSupBtn" onclick="navigateSupplier(1)"><i class="fas fa-chevron-right"></i> Próximo</button>
+            </div>
           </div>
         </div>
+        <div id="csvDebug" style="display:none;background:#0a0e18;border:1px solid #2a4060;border-radius:6px;padding:8px;margin-top:8px;max-height:300px;overflow:auto;font-size:.65rem;font-family:monospace;color:#aaa"></div>
       </div>
 
       <!-- REFERÊNCIA DA OPERAÇÃO -->
@@ -2755,8 +2807,233 @@ window.addEventListener('load',()=>{
 // ─── CSV IMPORT FUNCTIONS ───────────────────────────────
 let csvData = null;
 let currentSupplierIdx = 0;
-let parsedSuppliers = [];
+let parsedSuppliers = [];      // legacy format
+let parsedOps = [];            // OKTZ format
+let currentOpIdx = 0;
+let _csvFormat = 'legacy';     // 'oktz' | 'legacy'
 
+// ── Template download ────────────────────────────────────
+function downloadCSVTemplate(){
+  const header = [
+    'referencia','descricao','oc',
+    'origem','tipo_origem','destino','tipo_destino','modal',
+    'peso_kg','volume_m3','qtd_containers','tipo_container',
+    'item_1_desc','item_1_qtd','item_1_un','item_1_usd',
+    'item_2_desc','item_2_qtd','item_2_un','item_2_usd',
+    'item_3_desc','item_3_qtd','item_3_un','item_3_usd',
+    'item_4_desc','item_4_qtd','item_4_un','item_4_usd',
+    'item_5_desc','item_5_qtd','item_5_un','item_5_usd',
+  ].join(',');
+
+  const example1 = [
+    'OP-001','Maquinário Industrial CNC','OC 2576',
+    'Foshan','factory','Guangzhou / Nansha','port','road',
+    '5000','25','1','40hc',
+    'Máquina CNC','1','UN','15000',
+    'Peças de Reposição','50','CX','2500',
+    '','','','',
+    '','','','',
+    '','','','',
+  ].join(',');
+
+  const example2 = [
+    'OP-002','Equipamentos de Embalagem','OC 2709',
+    'Liaocheng','factory','Qingdao','port','road',
+    '8000','42','1','40hc',
+    'Máquina de Embalagem Automática','2','UN','22000',
+    'Painel de Controle','2','UN','3500',
+    'Cabos e Fiação','1','CX','800',
+    '','','','',
+    '','','','',
+  ].join(',');
+
+  const example3 = [
+    'OP-003','Componentes Eletrônicos','OC 37578',
+    'Huzhou','factory','Shanghai','port','road',
+    '1200','8',,'1','20gp',
+    'PCB Boards','500','UN','12000',
+    'Sensores Industriais','200','UN','4000',
+    '','','','',
+    '','','','',
+    '','','','',
+  ].join(',').replace(',,',',' );
+
+  const comments = [
+    '# OKTZ ERP — Template de Importação de Rotas v1.0',
+    '# Formato: OKTZ-OP-IMPORT',
+    '# tipo_origem/tipo_destino: factory | warehouse | port | airport | freezone | city',
+    '# modal: road | rail | river | air',
+    '# tipo_container: 20gp | 40gp | 40hc | 45hc | lcl',
+    '# item_N_un: UN | KG | M | M2 | M3 | CX | PC',
+    '# Linhas começando com # são ignoradas',
+    '#',
+  ].join('\n');
+
+  const csv = comments + '\n' + header + '\n' + example1 + '\n' + example2 + '\n' + example3 + '\n';
+
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'OKTZ_template_rotas.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  notify('Planilha modelo baixada!', 'ok');
+}
+
+function toggleCsvGuide(){
+  const box = document.getElementById('csvGuideBox');
+  const btn = document.getElementById('btnCsvGuide');
+  const shown = box.style.display !== 'none';
+  box.style.display = shown ? 'none' : '';
+  btn.innerHTML = shown
+    ? '<i class="fas fa-question-circle"></i> Ver Formato'
+    : '<i class="fas fa-times"></i> Fechar Guia';
+}
+
+// ── Format detection ─────────────────────────────────────
+function isOKTZFormat(data){
+  for(const row of data.slice(0, 12)){
+    const line = (row[0] || '').trim();
+    if(line.startsWith('#')) continue;
+    // Header row contains 'referencia' and 'modal'
+    const joined = row.join(',').toLowerCase();
+    if(joined.includes('referencia') && joined.includes('modal')) return true;
+    break;
+  }
+  return false;
+}
+
+// ── Parse OKTZ CSV ───────────────────────────────────────
+function parseOperationCSV(data){
+  const ops = [];
+  let headerRow = null;
+  let headerIdx = -1;
+
+  for(let i=0; i<data.length; i++){
+    const row = data[i];
+    const line = (row[0] || '').trim();
+    if(line.startsWith('#')) continue;
+    const joined = row.join(',').toLowerCase();
+    if(joined.includes('referencia') && joined.includes('modal')){
+      headerRow = row.map(h => h.trim().toLowerCase().replace(/\s+/g,'_'));
+      headerIdx = i;
+      break;
+    }
+  }
+  if(!headerRow) return ops;
+
+  const col = h => headerRow.indexOf(h);
+
+  for(let i = headerIdx + 1; i < data.length; i++){
+    const row = data[i];
+    if(!row || row.every(c => !c)) continue;
+    const first = (row[col('referencia')] || '').trim();
+    if(!first || first.startsWith('#')) continue;
+
+    const op = {
+      referencia:     first,
+      descricao:      (row[col('descricao')]      || '').trim(),
+      oc:             (row[col('oc')]              || '').trim(),
+      origem:         (row[col('origem')]          || '').trim(),
+      tipo_origem:    (row[col('tipo_origem')]     || 'factory').trim(),
+      destino:        (row[col('destino')]         || '').trim(),
+      tipo_destino:   (row[col('tipo_destino')]    || 'port').trim(),
+      modal:          (row[col('modal')]           || 'road').trim(),
+      peso_kg:        parseFloat((row[col('peso_kg')]  || '0').replace(',','.')) || 0,
+      volume_m3:      parseFloat((row[col('volume_m3')]|| '0').replace(',','.')) || 0,
+      qtd_containers: parseInt(row[col('qtd_containers')] || '1') || 1,
+      tipo_container: (row[col('tipo_container')] || '40hc').trim(),
+      items: [],
+    };
+
+    for(let n=1; n<=5; n++){
+      const desc = (row[col(`item_${n}_desc`)] || '').trim();
+      if(!desc) continue;
+      op.items.push({
+        id: n,
+        desc,
+        qty:  parseFloat((row[col(`item_${n}_qtd`)] || '1').replace(',','.')) || 1,
+        unit: (row[col(`item_${n}_un`)] || 'UN').trim().toUpperCase(),
+        usd:  parseFloat((row[col(`item_${n}_usd`)] || '0').replace(',','.')) || 0,
+      });
+    }
+
+    ops.push(op);
+  }
+  return ops;
+}
+
+// ── Load OKTZ operation into form ────────────────────────
+function loadOperationRow(idx){
+  if(idx < 0 || idx >= parsedOps.length) return;
+  const op = parsedOps[idx];
+
+  // Navigation UI
+  const total = parsedOps.length;
+  document.getElementById('csvNavBadge').textContent = `${idx+1}/${total}`;
+  document.getElementById('supplierName').textContent = (op.referencia + (op.descricao ? ' — ' + op.descricao : '')).substring(0, 70);
+  document.getElementById('prevSupBtn').style.display = idx > 0 ? '' : 'none';
+  document.getElementById('nextSupBtn').innerHTML = idx < total-1
+    ? '<i class="fas fa-chevron-right"></i> Próxima Op.'
+    : '<i class="fas fa-check"></i> Concluído';
+
+  // Reference fields
+  document.getElementById('opRef').value = op.referencia;
+  document.getElementById('opDesc').value = op.descricao;
+  document.getElementById('opOCCustom').value = op.oc;
+
+  // Origin
+  const oriCity = searchCityByAddress(op.origem);
+  if(oriCity) setOri(oriCity.lat, oriCity.lng, oriCity.n);
+  else document.getElementById('oriIn').value = op.origem;
+
+  // Destination
+  const dstCity = searchCityByAddress(op.destino);
+  if(dstCity) setDst(dstCity.lat, dstCity.lng, dstCity.n);
+  else document.getElementById('dstIn').value = op.destino;
+
+  // Type selects
+  const validOriTypes = ['factory','warehouse','port','airport','freezone','city'];
+  const validDstTypes = ['factory','warehouse','port','airport','freezone','city'];
+  const oriType = document.getElementById('oriType');
+  const dstType = document.getElementById('dstType');
+  if(oriType && validOriTypes.includes(op.tipo_origem)) oriType.value = op.tipo_origem;
+  if(dstType && validDstTypes.includes(op.tipo_destino)) dstType.value = op.tipo_destino;
+
+  // Modal buttons
+  const validModals = ['road','rail','river','air'];
+  const m = validModals.includes(op.modal) ? op.modal : 'road';
+  document.querySelectorAll('.mtbtn').forEach(btn => {
+    btn.classList.toggle('on', btn.dataset.m === m);
+  });
+  selMod = m;
+
+  // Cargo fields
+  const cWeightEl = document.getElementById('cWeight');
+  const cVolEl    = document.getElementById('cVol');
+  const cQtyEl    = document.getElementById('cQty');
+  const cTypeEl   = document.getElementById('cType');
+  if(cWeightEl && op.peso_kg > 0)      cWeightEl.value = op.peso_kg;
+  if(cVolEl    && op.volume_m3 > 0)    cVolEl.value    = op.volume_m3;
+  if(cQtyEl    && op.qtd_containers > 0) cQtyEl.value  = op.qtd_containers;
+  const validTypes = ['20gp','40gp','40hc','45hc','lcl'];
+  if(cTypeEl && validTypes.includes(op.tipo_container)) cTypeEl.value = op.tipo_container;
+
+  // Items
+  if(op.items.length > 0){
+    currentOp.items = op.items.map((it, i) => ({ ...it, id: i+1 }));
+    itemIdSeq = currentOp.items.length;
+    renderItems();
+  }
+
+  updateOpRef();
+  notify(`Operação ${idx+1}/${total} carregada: ${op.referencia}`, 'ok');
+}
+
+// ── Import dispatcher ────────────────────────────────────
 function importCSV(){
   const fileInput = document.getElementById('csvFile');
   if(!fileInput.files.length){ notify('Selecione um arquivo CSV','err'); return; }
@@ -2764,18 +3041,39 @@ function importCSV(){
   const file = fileInput.files[0];
   Papa.parse(file, {
     header: false,
+    skipEmptyLines: false,
     complete:(results)=>{
       csvData = results.data;
-      parsedSuppliers = extractSuppliersFromCSV(csvData);
 
-      if(parsedSuppliers.length===0){ notify('Nenhum fornecedor encontrado no CSV','err'); return; }
+      if(isOKTZFormat(csvData)){
+        _csvFormat = 'oktz';
+        parsedOps = parseOperationCSV(csvData);
+        if(parsedOps.length === 0){ notify('Nenhuma operação encontrada no CSV','err'); return; }
 
-      currentSupplierIdx = 0;
-      loadSupplier(0);
-      document.getElementById('supplierNav').style.display='';
-      document.getElementById('csvStatus').style.display='';
-      document.getElementById('csvStatus').textContent = `✓ ${parsedSuppliers.length} fornecedor(es) importado(s)`;
-      notify(`CSV importado: ${parsedSuppliers.length} fornecedor(es)`,'ok');
+        currentOpIdx = 0;
+        loadOperationRow(0);
+
+        const badge = `<span class="csv-format-badge oktz"><i class="fas fa-check-circle"></i> OKTZ</span>`;
+        document.getElementById('csvFormatBadge').innerHTML = badge;
+        document.getElementById('supplierNav').style.display = '';
+        document.getElementById('csvStatus').style.display = '';
+        document.getElementById('csvStatus').textContent = `✓ ${parsedOps.length} operação(ões) importada(s)`;
+        notify(`CSV OKTZ importado: ${parsedOps.length} operação(ões)`, 'ok');
+      } else {
+        _csvFormat = 'legacy';
+        parsedSuppliers = extractSuppliersFromCSV(csvData);
+        if(parsedSuppliers.length === 0){ notify('Nenhum fornecedor encontrado no CSV','err'); return; }
+
+        currentSupplierIdx = 0;
+        loadSupplier(0);
+
+        const badge = `<span class="csv-format-badge legacy"><i class="fas fa-info-circle"></i> Legado</span>`;
+        document.getElementById('csvFormatBadge').innerHTML = badge;
+        document.getElementById('supplierNav').style.display = '';
+        document.getElementById('csvStatus').style.display = '';
+        document.getElementById('csvStatus').textContent = `✓ ${parsedSuppliers.length} fornecedor(es) importado(s) (formato legado)`;
+        notify(`CSV importado: ${parsedSuppliers.length} fornecedor(es)`, 'ok');
+      }
     },
     error:(err)=>{
       notify(`Erro ao ler CSV: ${err.message}`,'err');
@@ -2787,51 +3085,33 @@ function extractSuppliersFromCSV(data){
   const suppliers = [];
   if(!data || data.length < 62) return suppliers;
 
-  // Supplier columns typically start at index 3 (after empty/header columns)
-  // Based on CSV: columns 3-7 are Supplier 1-5
   for(let col=3; col<=7; col++){
     const supplier = extractSupplierData(data, col);
     if(supplier.ocs.length > 0) suppliers.push(supplier);
   }
-
   return suppliers;
 }
 
 function extractSupplierData(data, colIdx){
   const supplier = {
-    name: '',
-    ocs: [],
-    origin: '',
-    destination: 'Santos, Brasil',
-    items: [],
-    weight: 0,
-    cbm: 0,
-    value: 0,
-    containers: 0
+    name: '', ocs: [], origin: '', destination: 'Santos, Brasil',
+    items: [], weight: 0, cbm: 0, value: 0, containers: 0
   };
 
-  // Extract company name & OCs (Row 8-24, typically 8-12)
   let companyText = '';
   for(let row=7; row<=25; row++){
     if(data[row] && data[row][colIdx]) companyText += ' ' + data[row][colIdx];
   }
   supplier.name = companyText.trim().split('\n')[0].substring(0,80);
-
-  // Extract OCs
   const ocMatches = companyText.match(/OC\s+(\d{4,5})/g) || [];
   supplier.ocs = ocMatches.map(oc=>oc.trim());
 
-  // Extract origin from address (Row 28)
   const addressText = (data[27] && data[27][colIdx]) ? String(data[27][colIdx]).toLowerCase() : '';
   const cities = ['foshan','huzhou','wenzhou','liaocheng','dongguan','shanghai','shenzhen','hangzhou','ningbo','tianjin','qingdao','xiamen','dalian'];
   for(const city of cities){
-    if(addressText.includes(city)){
-      supplier.origin = capitalizeCity(city);
-      break;
-    }
+    if(addressText.includes(city)){ supplier.origin = capitalizeCity(city); break; }
   }
 
-  // Extract items from SHIPPING MARK (Row 44-54)
   const itemText = [];
   for(let row=43; row<=54; row++){
     if(data[row] && data[row][colIdx]){
@@ -2839,25 +3119,16 @@ function extractSupplierData(data, colIdx){
       if(cell && cell.length > 5) itemText.push(cell);
     }
   }
-  supplier.items = itemText.filter(t=>t.length>0).map((t,i)=>({
-    id: i+1,
-    desc: t.substring(0,200),
-    qty: 1,
-    unit: 'UN',
-    usd: 0
-  }));
+  supplier.items = itemText.filter(t=>t.length>0).map((t,i)=>({ id:i+1, desc:t.substring(0,200), qty:1, unit:'UN', usd:0 }));
 
-  // Extract quantities (Row 59-62)
   const ctnRow = data[58] && data[58][colIdx] ? String(data[58][colIdx]).trim() : '0';
-  const gwRow = data[59] && data[59][colIdx] ? String(data[59][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
+  const gwRow  = data[59] && data[59][colIdx] ? String(data[59][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
   const cbmRow = data[60] && data[60][colIdx] ? String(data[60][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
   const valRow = data[61] && data[61][colIdx] ? String(data[61][colIdx]).replace(/[^\d.,]/g,'').replace(',','.') : '0';
-
   supplier.containers = parseInt(ctnRow) || 0;
   supplier.weight = parseFloat(gwRow) || 0;
   supplier.cbm = parseFloat(cbmRow) || 0;
   supplier.value = parseFloat(valRow) || 0;
-
   return supplier;
 }
 
@@ -2871,54 +3142,51 @@ function capitalizeCity(city){
 }
 
 function navigateSupplier(dir){
-  const newIdx = currentSupplierIdx + dir;
-  if(newIdx >= 0 && newIdx < parsedSuppliers.length){
-    currentSupplierIdx = newIdx;
-    loadSupplier(newIdx);
+  if(_csvFormat === 'oktz'){
+    const newIdx = currentOpIdx + dir;
+    if(newIdx >= 0 && newIdx < parsedOps.length){
+      currentOpIdx = newIdx;
+      loadOperationRow(newIdx);
+    }
+  } else {
+    const newIdx = currentSupplierIdx + dir;
+    if(newIdx >= 0 && newIdx < parsedSuppliers.length){
+      currentSupplierIdx = newIdx;
+      loadSupplier(newIdx);
+    }
   }
 }
 
 function loadSupplier(idx){
   if(idx < 0 || idx >= parsedSuppliers.length) return;
-
   const sup = parsedSuppliers[idx];
+  const total = parsedSuppliers.length;
 
-  // Update navigation display
-  document.getElementById('currentSupplier').textContent = (idx+1);
-  document.getElementById('totalSuppliers').textContent = parsedSuppliers.length;
+  document.getElementById('csvNavBadge').textContent = `${idx+1}/${total}`;
   document.getElementById('supplierName').textContent = sup.name.substring(0,60);
   document.getElementById('prevSupBtn').style.display = idx > 0 ? '' : 'none';
-  document.getElementById('nextSupBtn').textContent = idx < parsedSuppliers.length-1 ? '<i class="fas fa-chevron-right"></i> Próximo' : '<i class="fas fa-check"></i> Concluído';
+  document.getElementById('nextSupBtn').innerHTML = idx < total-1
+    ? '<i class="fas fa-chevron-right"></i> Próximo'
+    : '<i class="fas fa-check"></i> Concluído';
 
-  // Fill form
   document.getElementById('opRef').value = sup.ocs.join(', ');
   document.getElementById('opDesc').value = sup.name;
   document.getElementById('oriIn').value = sup.origin || '';
   document.getElementById('dstIn').value = sup.destination;
 
-  // Load items
   currentOp.items = sup.items.map((item,i)=>({...item, id:i+1}));
   itemIdSeq = currentOp.items.length;
   renderItems();
-
   updateOpRef();
   notify(`Fornecedor ${idx+1} carregado: ${sup.ocs.join(', ')}`,'ok');
 }
 
 function toggleCSVDebug(){
   const debugDiv = document.getElementById('csvDebug');
-  const fileInput = document.getElementById('csvFile');
-
-  if(!csvData || csvData.length === 0){
-    notify('Importe um CSV primeiro','err');
-    return;
-  }
+  if(!csvData || csvData.length === 0){ notify('Importe um CSV primeiro','err'); return; }
 
   if(debugDiv.style.display === 'none'){
-    // Show debug
     let html = '<div style="margin-bottom:12px"><strong>Estrutura do CSV (Linha x Coluna: Valor)</strong></div>';
-
-    // Show first 15 rows and columns 0-8
     for(let row=0; row<Math.min(csvData.length, 65); row++){
       const rowData = csvData[row] || [];
       for(let col=0; col<Math.min(rowData.length, 9); col++){
@@ -2929,10 +3197,8 @@ function toggleCSVDebug(){
         }
       }
     }
-
     debugDiv.innerHTML = html;
     debugDiv.style.display = 'block';
-    notify('Estrutura do CSV exibida. Procure pelos dados esperados.','info');
   } else {
     debugDiv.style.display = 'none';
   }
