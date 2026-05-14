@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKTZ ERP — Importar CSV</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+.drop-zone {
+  border: 2px dashed rgba(0,255,136,0.3);
+  border-radius: 14px;
+  padding: 56px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  position: relative;
+}
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--primary);
+  background: rgba(0,255,136,0.04);
+}
+.drop-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-icon { font-size: 48px; line-height: 1; margin-bottom: 16px; }
+.drop-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.drop-hint { font-size: 12px; color: var(--text-sec); }
+
+.file-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card-2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 18px;
+  margin-top: 16px;
+}
+.file-card .file-ico { font-size: 28px; flex-shrink: 0; }
+.file-card .file-meta { flex: 1; min-width: 0; }
+.file-card .file-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-card .file-size { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
+.file-card .file-type-tag {
+  font-size: 11px; font-weight: 700; padding: 3px 10px;
+  border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+}
+.tag-csv1 { background: rgba(0,255,136,0.12); color: var(--primary); }
+.tag-csv0 { background: rgba(64,196,255,0.12); color: var(--info); }
+.tag-csv2 { background: rgba(255,171,64,0.12); color: var(--warning); }
+.tag-unknown { background: rgba(255,82,82,0.12); color: var(--danger); }
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.result-stat {
+  background: var(--card-2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  text-align: center;
+}
+.result-stat .rs-val { font-size: 28px; font-weight: 800; color: var(--primary); line-height: 1; }
+.result-stat .rs-sub { font-size: 11px; color: var(--text-sec); margin-top: 4px; }
+.result-stat .rs-label { font-size: 12px; font-weight: 600; margin-top: 6px; }
+.result-stat.skipped .rs-val { color: var(--text-sec); }
+.result-stat.updated .rs-val { color: var(--warning); }
+
+.error-list { margin-top: 12px; }
+.error-item {
+  font-size: 11px; color: var(--danger); background: var(--danger-bg);
+  border-radius: 4px; padding: 4px 10px; margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.progress-bar-wrap {
+  height: 4px; background: var(--card-2); border-radius: 2px;
+  margin-top: 16px; overflow: hidden;
+}
+.progress-bar {
+  height: 100%; width: 0; background: var(--primary);
+  border-radius: 2px; transition: width .4s ease;
+}
+
+.format-guide {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+}
+.format-card {
+  background: var(--card-2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.format-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.format-card p { font-size: 11px; color: var(--text-sec); line-height: 1.6; }
+.fc-csv1 h4 { color: var(--primary); }
+.fc-csv0 h4 { color: var(--info); }
+.fc-csv2 h4 { color: var(--warning); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="/images/logo.svg" alt="OKTZ" class="sidebar-logo-img">
+      <div class="sub">Setor de Importação</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a class="nav-item" href="/dashboard">🏠 Dashboard</a>
+      <div class="nav-section">Módulos</div>
+      <a class="nav-item" href="/suppliers">🏭 Fornecedores</a>
+      <a class="nav-item" href="/payments">💳 Pagamentos</a>
+      <a class="nav-item" href="/customs">🚢 Desembaraço</a>
+      <a class="nav-item" href="/notifications">📲 Notificações</a>
+      <a class="nav-item active" href="/import">📤 Importar CSV</a>
+      <div class="nav-section">Admin</div>
+      <a class="nav-item" href="/users">👥 Usuários</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-name" id="sidebar-user-name">—</div>
+      <div class="user-role" id="sidebar-user-role">—</div>
+      <div class="logout-btn" id="logout-btn">⬡ Sair do sistema</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top-header">
+      <span class="page-title">📤 Importar Planilha CSV</span>
+      <div class="header-actions">
+        <span id="status-msg" style="font-size:12px;color:var(--text-sec)"></span>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- Upload card -->
+      <div class="card mb-4">
+        <div class="card-header" style="padding:18px 20px 0;font-weight:700;font-size:15px">
+          Enviar arquivo
+        </div>
+        <div style="padding:20px">
+
+          <div class="drop-zone" id="drop-zone">
+            <input type="file" id="file-input" accept=".csv,text/csv">
+            <div class="drop-icon">📂</div>
+            <div class="drop-title">Arraste o arquivo CSV aqui</div>
+            <div class="drop-hint">ou clique para selecionar · máximo 15 MB</div>
+          </div>
+
+          <div id="file-card" hidden>
+            <div class="file-card">
+              <div class="file-ico">📄</div>
+              <div class="file-meta">
+                <div class="file-name" id="fc-name">—</div>
+                <div class="file-size" id="fc-size">—</div>
+              </div>
+              <div class="file-type-tag" id="fc-type-tag">—</div>
+            </div>
+            <div class="progress-bar-wrap" id="progress-wrap" hidden>
+              <div class="progress-bar" id="progress-bar"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:10px;align-items:center">
+            <button class="btn btn-primary" id="btn-import" disabled>
+              Importar dados
+            </button>
+            <button class="btn btn-outline btn-sm" id="btn-clear" hidden>
+              Limpar
+            </button>
+            <span id="import-msg" style="font-size:12px;color:var(--text-sec)"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results card -->
+      <div class="card mb-4" id="results-card" hidden>
+        <div style="padding:18px 20px 0;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700;font-size:15px" id="res-title">Resultado da importação</div>
+          <div class="badge" id="res-badge" style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700"></div>
+        </div>
+        <div style="padding:16px 20px">
+          <div class="result-grid" id="result-grid"></div>
+          <div class="error-list" id="error-list" hidden></div>
+        </div>
+      </div>
+
+      <!-- Format guide -->
+      <div class="card">
+        <div style="padding:18px 20px 0;font-weight:700;font-size:15px">Formatos suportados</div>
+        <div style="padding:16px 20px">
+          <div class="format-guide">
+            <div class="format-card fc-csv1">
+              <h4>Cabeçalho de Nota</h4>
+              <p>Exportação do sistema de notas fiscais. Importa <strong>fornecedores</strong> e <strong>pagamentos</strong>. Detectado pela linha "Cabeçalho da Nota" ou pelo status (Aprovado, Pendente…) na primeira coluna.</p>
+            </div>
+            <div class="format-card fc-csv0">
+              <h4>Follow-up de Importação</h4>
+              <p>Planilha de acompanhamento de OCs. Importa <strong>processos alfandegários</strong>. Detectado pelas colunas "INICIO DA OPERAÇÃO" e "STATUS DA OPERAÇÃO".</p>
+            </div>
+            <div class="format-card fc-csv2">
+              <h4>Faturamento e Custos</h4>
+              <p>Planilha de despesas por OC. Importa <strong>fornecedores</strong> e <strong>atualiza custos</strong> nos processos existentes (frete, armazenagem, seguro, despachante). Detectado por "REF OC" e "SISCOMEX".</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /app-layout -->
+
+<script src="/js/api.js"></script>
+<script>
+Auth.requireAuth();
+
+// ── Sidebar user info ─────────────────────────────────────────
+(function () {
+  const u = Auth.getUser();
+  if (u) {
+    document.getElementById('sidebar-user-name').textContent = u.name || '—';
+    document.getElementById('sidebar-user-role').textContent = u.role || '—';
+  }
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    try { await API.post('/api/auth/logout', {}); } catch {}
+    Auth.clear();
+    window.location.href = '/';
+  });
+})();
+
+// ── Elements ──────────────────────────────────────────────────
+const dropZone  = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const fileCard  = document.getElementById('file-card');
+const fcName    = document.getElementById('fc-name');
+const fcSize    = document.getElementById('fc-size');
+const fcTypeTag = document.getElementById('fc-type-tag');
+const btnImport = document.getElementById('btn-import');
+const btnClear  = document.getElementById('btn-clear');
+const importMsg = document.getElementById('import-msg');
+const progressWrap = document.getElementById('progress-wrap');
+const progressBar  = document.getElementById('progress-bar');
+const resultsCard  = document.getElementById('results-card');
+const resultGrid   = document.getElementById('result-grid');
+const resTitle     = document.getElementById('res-title');
+const resBadge     = document.getElementById('res-badge');
+const errorList    = document.getElementById('error-list');
+
+let selectedFile = null;
+let detectedType = null;
+
+// ── Type detection (client-side preview) ─────────────────────
+
+const TYPE_META = {
+  csv1: { label: 'Cabeçalho de Nota', cls: 'tag-csv1' },
+  csv0: { label: 'Follow-up de Importação', cls: 'tag-csv0' },
+  csv2: { label: 'Faturamento e Custos', cls: 'tag-csv2' },
+  unknown: { label: 'Formato desconhecido', cls: 'tag-unknown' },
+};
+
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+function detectTypeClient(text) {
+  const sample = text.slice(0, 4000).toLowerCase();
+  if (sample.includes('cabeçalho da nota') || sample.includes('cabecalho da nota')) return 'csv1';
+  if (/\n(aprovado|pendente|liberado|bloqueado|reprovado|sem pend)/i.test(text.slice(0, 4000))) return 'csv1';
+  if (sample.includes('inicio da operação') || sample.includes('inicio da operacao')) return 'csv0';
+  if (sample.includes('etapas') && sample.includes('progresso')) return 'csv0';
+  if (sample.includes('ref oc') && sample.includes('empresa')) return 'csv2';
+  if (sample.includes('siscomex') && sample.includes('frete dta')) return 'csv2';
+  return 'unknown';
+}
+
+function onFileSelected(file) {
+  if (!file) return;
+  selectedFile = file;
+  resultsCard.hidden = true;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = e.target.result;
+    detectedType = detectTypeClient(preview);
+
+    fcName.textContent = file.name;
+    fcSize.textContent = fmtSize(file.size);
+    const meta = TYPE_META[detectedType] || TYPE_META.unknown;
+    fcTypeTag.textContent = meta.label;
+    fcTypeTag.className = 'file-type-tag ' + meta.cls;
+
+    fileCard.hidden = false;
+    btnClear.hidden = false;
+    btnImport.disabled = detectedType === 'unknown';
+    importMsg.textContent = detectedType === 'unknown'
+      ? 'Formato não reconhecido. Verifique se é um dos três formatos suportados.'
+      : `Pronto para importar como "${meta.label}".`;
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function clearSelection() {
+  selectedFile = null;
+  detectedType = null;
+  fileInput.value = '';
+  fileCard.hidden = true;
+  btnImport.disabled = true;
+  btnClear.hidden = true;
+  importMsg.textContent = '';
+  progressWrap.hidden = true;
+  progressBar.style.width = '0%';
+}
+
+// ── Drag & drop ───────────────────────────────────────────────
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) onFileSelected(f);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) onFileSelected(fileInput.files[0]);
+});
+btnClear.addEventListener('click', clearSelection);
+
+// ── Import ────────────────────────────────────────────────────
+
+function statCard(val, label, cls = '') {
+  return `<div class="result-stat ${cls}">
+    <div class="rs-val">${val}</div>
+    <div class="rs-label">${label}</div>
+  </div>`;
+}
+
+function renderResults(data) {
+  resTitle.textContent = `Resultado — ${data.label}`;
+  resBadge.textContent = data.filename || '';
+  resBadge.style.cssText = 'background:rgba(0,255,136,.12);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700';
+
+  let cards = '';
+  if (data.suppliers) {
+    cards += statCard(data.suppliers.inserted, 'Fornecedores novos');
+    cards += statCard(data.suppliers.skipped, 'Fornecedores já existiam', 'skipped');
+  }
+  if (data.payments) {
+    cards += statCard(data.payments.inserted, 'Pagamentos importados');
+    cards += statCard(data.payments.skipped, 'Pagamentos duplicados', 'skipped');
+  }
+  if (data.customs) {
+    if (data.customs.inserted != null) cards += statCard(data.customs.inserted, 'Processos criados');
+    if (data.customs.skipped != null) cards += statCard(data.customs.skipped, 'Processos já existiam', 'skipped');
+    if (data.customs.updated != null) cards += statCard(data.customs.updated, 'Processos atualizados', 'updated');
+  }
+  if (data.rows) cards += statCard(data.rows, 'Linhas no arquivo', 'skipped');
+
+  resultGrid.innerHTML = cards;
+  resultsCard.hidden = false;
+
+  const errs = data.errors || [];
+  if (errs.length) {
+    errorList.hidden = false;
+    errorList.innerHTML = `<div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--danger)">Avisos (${errs.length})</div>`
+      + errs.slice(0, 20).map(e => `<div class="error-item">${e}</div>`).join('');
+  } else {
+    errorList.hidden = true;
+  }
+}
+
+btnImport.addEventListener('click', async () => {
+  if (!selectedFile) return;
+
+  btnImport.disabled = true;
+  importMsg.textContent = 'Enviando…';
+  progressWrap.hidden = false;
+  progressBar.style.width = '30%';
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+
+  try {
+    const token = Auth.getToken();
+    progressBar.style.width = '60%';
+
+    const res = await fetch('/api/import/upload', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+
+    progressBar.style.width = '90%';
+
+    if (res.status === 401) {
+      const ok = await Auth.refresh();
+      if (!ok) { Auth.clear(); window.location.href = '/'; return; }
+      const res2 = await fetch('/api/import/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${Auth.getToken()}` },
+        body: formData,
+      });
+      if (!res2.ok) throw new Error((await res2.json()).error || 'Erro no servidor');
+      renderResults(await res2.json());
+    } else if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Erro no servidor');
+    } else {
+      renderResults(await res.json());
+    }
+
+    progressBar.style.width = '100%';
+    importMsg.textContent = 'Importação concluída!';
+    setTimeout(() => { progressWrap.hidden = true; progressBar.style.width = '0%'; }, 1200);
+  } catch (err) {
+    progressWrap.hidden = true;
+    importMsg.textContent = '';
+    alert('Erro: ' + err.message);
+  } finally {
+    btnImport.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKTZ ERP — Notificações</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img src="/images/logo.svg" alt="OKTZ" class="sidebar-logo-img"><div class="sub">Setor de Importação</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a class="nav-item" data-page="dashboard" href="/dashboard">🏠 Dashboard</a>
+      <div class="nav-section">Módulos</div>
+      <a class="nav-item" data-page="suppliers" href="/suppliers">🏭 Fornecedores</a>
+      <a class="nav-item" data-page="payments" href="/payments">💳 Pagamentos</a>
+      <a class="nav-item" data-page="customs" href="/customs">🚢 Desembaraço</a>
+      <a class="nav-item" data-page="notifications" href="/notifications">📲 Notificações</a>
+      <div class="nav-section" id="nav-admin-section" style="display:none">Admin</div>
+      <a class="nav-item hidden" id="nav-users" data-page="users" href="/users">👥 Usuários</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-name" id="sidebar-user-name">—</div>
+      <div class="user-role" id="sidebar-user-role">—</div>
+      <div class="logout-btn" id="logout-btn">⬡ Sair do sistema</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top-header">
+      <span class="page-title">📲 Central de Notificações</span>
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" id="btn-send-whatsapp">📱 WhatsApp</button>
+        <button class="btn btn-primary btn-sm" id="btn-send-email">📧 Email</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- WhatsApp Status Banner -->
+      <div class="card mb-4" id="wa-status-card">
+        <div class="card-body" style="padding:14px 20px">
+          <div class="d-flex justify-between align-center">
+            <div class="d-flex align-center gap-3">
+              <span style="font-size:24px">📱</span>
+              <div>
+                <div style="font-weight:700;font-size:14px">WhatsApp Business</div>
+                <div class="wa-status mt-1">
+                  <div class="wa-dot" id="wa-dot"></div>
+                  <span id="wa-status-text">Verificando...</span>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex gap-2 align-center">
+              <div id="wa-qr-container" class="hidden">
+                <div class="alert alert-warning" style="padding:8px 12px;margin:0;font-size:12px">
+                  📷 Abra o WhatsApp no celular → Dispositivos conectados → Conectar dispositivo → Escaneie o QR no terminal
+                </div>
+              </div>
+              <button class="btn btn-ghost btn-sm" id="btn-wa-reconnect">🔄 Reconectar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border)">
+        <button class="btn btn-ghost" id="tab-all" style="border-radius:6px 6px 0 0;border-bottom:2px solid var(--primary);color:var(--primary)" onclick="filterNotifs('')">Todas</button>
+        <button class="btn btn-ghost" id="tab-whatsapp" style="border-radius:6px 6px 0 0" onclick="filterNotifs('whatsapp')">📱 WhatsApp</button>
+        <button class="btn btn-ghost" id="tab-email" style="border-radius:6px 6px 0 0" onclick="filterNotifs('email')">📧 Email</button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Canal</th><th>Destinatário</th><th>Assunto / Mensagem</th><th>Referência</th><th>Status</th><th>Enviado por</th><th>Data</th></tr></thead>
+            <tbody id="notif-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: WhatsApp -->
+<div class="modal-overlay" id="modal-whatsapp">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📱 Enviar Mensagem WhatsApp</span>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info mb-3">
+        <i>ℹ</i><span>Use o formato internacional: <strong>+5511999999999</strong></span>
+      </div>
+      <div class="form-group">
+        <label>Destinatários <span class="required">*</span></label>
+        <div id="wa-recipients-tags" class="tags mt-1">
+          <div class="tag-input">
+            <input type="tel" id="wa-number-input" placeholder="+5511999999999">
+            <button type="button" class="btn btn-ghost btn-sm" id="add-wa-recipient">+ Adicionar</button>
+          </div>
+        </div>
+        <div class="form-hint mt-1">Usuários cadastrados:</div>
+        <div id="wa-users-list" class="d-flex gap-2 mt-1" style="flex-wrap:wrap"></div>
+      </div>
+      <div class="form-group">
+        <label>Mensagem <span class="required">*</span></label>
+        <textarea id="wa-message" rows="5" placeholder="Digite a mensagem...&#10;&#10;Exemplo:&#10;Prezados, processo IMP-2024-001 foi liberado na alfândega. Produto disponível para retirada."></textarea>
+        <div class="form-hint" id="wa-char-count">0 / 1000 caracteres</div>
+      </div>
+      <div class="form-group">
+        <label>Templates rápidos</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setTemplate('pagamento')">💳 Pagamento</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setTemplate('desembaraco')">🚢 Desembaraço</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setTemplate('chegada')">📦 Chegada de Mercadoria</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setTemplate('urgente')">🚨 Urgente</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-whatsapp')">Cancelar</button>
+      <button class="btn btn-success" id="btn-confirm-wa">📤 Enviar WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Email genérico -->
+<div class="modal-overlay" id="modal-email">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">📧 Enviar Email</span>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Para <span class="required">*</span></label>
+        <div id="email-to-tags" class="tags mt-1">
+          <div class="tag-input"><input type="email" id="email-to-input" placeholder="email@empresa.com"><button type="button" class="btn btn-ghost btn-sm" id="add-email-to">+ Add</button></div>
+        </div>
+        <div id="email-default-contacts" class="d-flex gap-2 mt-2" style="flex-wrap:wrap"></div>
+      </div>
+      <div class="form-group">
+        <label>CC</label>
+        <div id="email-cc-tags" class="tags mt-1">
+          <div class="tag-input"><input type="email" id="email-cc-input" placeholder="copia@empresa.com"><button type="button" class="btn btn-ghost btn-sm" id="add-email-cc">+ Add</button></div>
+        </div>
+      </div>
+      <div class="form-group"><label>Assunto <span class="required">*</span></label><input type="text" id="email-subject" placeholder="Assunto do email"></div>
+      <div class="form-group"><label>Mensagem <span class="required">*</span></label><textarea id="email-body" rows="7" placeholder="Corpo do email..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-email')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirm-email">📤 Enviar Email</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+Auth.requireAuth();
+initSidebar('notifications');
+if (Auth.hasRole('admin')) {
+  document.getElementById('nav-admin-section').style.display = '';
+  document.getElementById('nav-users').classList.remove('hidden');
+}
+
+let waTags, emailToTags, emailCcTags;
+let currentFilter = '';
+
+const templates = {
+  pagamento: `Prezados,\n\nInformamos que há um pagamento pendente de aprovação no sistema ERP OKTZ.\n\nPor favor, acesse o sistema para verificar os detalhes e tomar as providências necessárias.\n\nSetor de Importação OKTZ`,
+  desembaraco: `Prezados,\n\nInformamos atualização no processo de desembaraço aduaneiro.\n\nAcompanhe o status atualizado no sistema ERP OKTZ.\n\nSetor de Importação OKTZ`,
+  chegada: `Prezados,\n\nA mercadoria importada chegou ao destino e está disponível para retirada/armazenagem.\n\nPor favor, confirme o recebimento no sistema.\n\nSetor de Importação OKTZ`,
+  urgente: `⚠️ URGENTE\n\nPrezados,\n\nHá uma pendência urgente que requer atenção imediata no setor de importação.\n\nAcesse o sistema ERP OKTZ imediatamente.\n\nSetor de Importação OKTZ`,
+};
+
+function setTemplate(key) {
+  document.getElementById('wa-message').value = templates[key] || '';
+  updateCharCount();
+}
+
+function updateCharCount() {
+  const len = document.getElementById('wa-message').value.length;
+  const el = document.getElementById('wa-char-count');
+  el.textContent = `${len} / 1000 caracteres`;
+  el.style.color = len > 900 ? 'var(--danger)' : 'var(--text-sec)';
+}
+
+async function checkWaStatus() {
+  try {
+    const s = await API.get('/api/notifications/whatsapp/status');
+    const dot = document.getElementById('wa-dot');
+    const text = document.getElementById('wa-status-text');
+    const statusLabels = {
+      connected: 'Conectado ✓', disconnected: 'Desconectado',
+      qr_required: 'Aguardando QR Code...', initializing: 'Inicializando...',
+      authenticated: 'Autenticado, conectando...', error: 'Erro de conexão',
+      auth_failed: 'Falha de autenticação', disabled: 'Desabilitado (.env WHATSAPP_ENABLED=false)',
+    };
+    dot.className = `wa-dot ${s.status}`;
+    text.textContent = statusLabels[s.status] || s.status;
+    document.getElementById('wa-qr-container').classList.toggle('hidden', !s.hasQr);
+  } catch {}
+}
+
+function filterNotifs(type) {
+  currentFilter = type;
+  ['all','whatsapp','email'].forEach(t => {
+    const btn = document.getElementById(`tab-${t}`);
+    const isActive = (t === 'all' && !type) || t === type;
+    btn.style.borderBottom = isActive ? '2px solid var(--primary)' : 'none';
+    btn.style.color = isActive ? 'var(--primary)' : '';
+  });
+  loadNotifications();
+}
+
+async function loadNotifications() {
+  tableLoading('notif-tbody');
+  let url = '/api/notifications?limit=100';
+  if (currentFilter) url += `&type=${currentFilter}`;
+  try {
+    const res = await API.get(url);
+    const tbody = document.getElementById('notif-tbody');
+    if (!res.notifications.length) { tableEmpty('notif-tbody', 'Nenhuma notificação encontrada', 7); return; }
+    tbody.innerHTML = res.notifications.map(n => `<tr>
+      <td>${n.type === 'whatsapp' ? '📱 WhatsApp' : '📧 Email'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${n.recipient}">${n.recipient}</td>
+      <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${n.subject || n.message}">${n.subject || n.message}</td>
+      <td class="text-muted text-sm">${n.reference_type ? `${n.reference_type} #${n.reference_id}` : '—'}</td>
+      <td>${badge(n.status)}${n.error_message ? `<br><span class="text-muted text-sm" title="${n.error_message}">ℹ</span>` : ''}</td>
+      <td class="text-muted">${n.created_by_name || '—'}</td>
+      <td class="text-muted text-sm">${fmtDateTime(n.sent_at || n.created_at)}</td>
+    </tr>`).join('');
+  } catch (err) { showToast('Erro: ' + err.message, 'error'); }
+}
+
+// WhatsApp modal
+document.getElementById('btn-send-whatsapp').addEventListener('click', async () => {
+  if (waTags) waTags.clear();
+  waTags = initTagInput('wa-recipients-tags', 'wa-number-input', 'add-wa-recipient');
+  document.getElementById('wa-message').value = '';
+  updateCharCount();
+
+  // Load users with WhatsApp numbers
+  try {
+    const res = await API.get('/api/users');
+    const container = document.getElementById('wa-users-list');
+    container.innerHTML = '';
+    (res.users || []).filter(u => u.whatsapp_number).forEach(u => {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn btn-ghost btn-sm';
+      btn.textContent = `+ ${u.name}`;
+      btn.onclick = () => waTags?.add(u.whatsapp_number);
+      container.appendChild(btn);
+    });
+  } catch {}
+
+  openModal('modal-whatsapp');
+});
+
+document.getElementById('wa-message').addEventListener('input', updateCharCount);
+
+document.getElementById('btn-confirm-wa').addEventListener('click', async () => {
+  const recipients = waTags?.getTags() || [];
+  const message = document.getElementById('wa-message').value.trim();
+  if (!recipients.length) { showToast('Adicione ao menos um número', 'warning'); return; }
+  if (!message) { showToast('Digite a mensagem', 'warning'); return; }
+  const btn = document.getElementById('btn-confirm-wa');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const res = await API.post('/api/notifications/whatsapp', { recipients, message });
+    const sent = res.results.filter(r => r.status === 'sent').length;
+    const failed = res.results.filter(r => r.status === 'failed').length;
+    if (failed > 0) showToast(`${sent} enviados, ${failed} falharam`, 'warning');
+    else showToast(`${sent} mensagem(ns) enviada(s)!`);
+    closeModal('modal-whatsapp');
+    loadNotifications();
+  } catch (err) { showToast(err.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📤 Enviar WhatsApp'; }
+});
+
+// Email modal
+document.getElementById('btn-send-email').addEventListener('click', async () => {
+  if (emailToTags) emailToTags.clear();
+  if (emailCcTags) emailCcTags.clear();
+  emailToTags = initTagInput('email-to-tags', 'email-to-input', 'add-email-to');
+  emailCcTags = initTagInput('email-cc-tags', 'email-cc-input', 'add-email-cc');
+  document.getElementById('email-subject').value = '';
+  document.getElementById('email-body').value = '';
+
+  try {
+    const contacts = await API.get('/api/notifications/contacts');
+    const c = document.getElementById('email-default-contacts');
+    c.innerHTML = '';
+    contacts.contacts.forEach(ct => {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn btn-ghost btn-sm';
+      btn.textContent = `+ ${ct.label}`;
+      btn.onclick = () => emailToTags?.add(ct.email);
+      c.appendChild(btn);
+    });
+  } catch {}
+
+  openModal('modal-email');
+});
+
+document.getElementById('btn-confirm-email').addEventListener('click', async () => {
+  const recipients = emailToTags?.getTags() || [];
+  const cc = emailCcTags?.getTags() || [];
+  const subject = document.getElementById('email-subject').value.trim();
+  const message = document.getElementById('email-body').value.trim();
+  if (!recipients.length) { showToast('Adicione ao menos um destinatário', 'warning'); return; }
+  if (!subject) { showToast('Informe o assunto', 'warning'); return; }
+  if (!message) { showToast('Escreva a mensagem', 'warning'); return; }
+  const btn = document.getElementById('btn-confirm-email');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    await API.post('/api/notifications/email', { recipients, cc, subject, message });
+    showToast('Email enviado!');
+    closeModal('modal-email');
+    loadNotifications();
+  } catch (err) { showToast(err.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📤 Enviar Email'; }
+});
+
+document.getElementById('btn-wa-reconnect').addEventListener('click', async () => {
+  if (!Auth.hasRole('admin')) { showToast('Apenas administradores podem reconectar o WhatsApp', 'warning'); return; }
+  try {
+    await API.post('/api/notifications/whatsapp/reconnect');
+    showToast('Reconexão iniciada. Aguarde o QR code no terminal.', 'info', 6000);
+    setTimeout(checkWaStatus, 3000);
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+checkWaStatus();
+setInterval(checkWaStatus, 15000);
+loadNotifications();
+</script>
+</body>
+</html>

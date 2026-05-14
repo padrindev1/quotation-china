@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKTZ ERP — Desembaraço Aduaneiro</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img src="/images/logo.svg" alt="OKTZ" class="sidebar-logo-img"><div class="sub">Setor de Importação</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a class="nav-item" data-page="dashboard" href="/dashboard">🏠 Dashboard</a>
+      <div class="nav-section">Módulos</div>
+      <a class="nav-item" data-page="suppliers" href="/suppliers">🏭 Fornecedores</a>
+      <a class="nav-item" data-page="payments" href="/payments">💳 Pagamentos</a>
+      <a class="nav-item" data-page="customs" href="/customs">🚢 Desembaraço</a>
+      <a class="nav-item" data-page="notifications" href="/notifications">📲 Notificações</a>
+      <div class="nav-section" id="nav-admin-section" style="display:none">Admin</div>
+      <a class="nav-item hidden" id="nav-users" data-page="users" href="/users">👥 Usuários</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-name" id="sidebar-user-name">—</div>
+      <div class="user-role" id="sidebar-user-role">—</div>
+      <div class="logout-btn" id="logout-btn">⬡ Sair do sistema</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top-header">
+      <span class="page-title">🚢 Faturamento Aduaneiro</span>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" id="btn-new-process">+ Novo Processo</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat-card"><div class="stat-icon blue">📦</div><div><div class="stat-value" id="s-total">—</div><div class="stat-label">Total de Processos</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">🔄</div><div><div class="stat-value" id="s-progress">—</div><div class="stat-label">Em Andamento</div></div></div>
+        <div class="stat-card"><div class="stat-icon red">⚖️</div><div><div class="stat-value" id="s-clearance">—</div><div class="stat-label">Em Desembaraço</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value" id="s-completed">—</div><div class="stat-label">Concluídos</div></div></div>
+        <div class="stat-card"><div class="stat-icon teal">💰</div><div><div class="stat-value currency" id="s-total-taxes">—</div><div class="stat-label">Total de Impostos</div></div></div>
+      </div>
+
+      <div class="filters-bar">
+        <select id="filter-status" onchange="loadProcesses()">
+          <option value="">Todos</option>
+          <option value="draft">Rascunho</option>
+          <option value="in_progress">Em Andamento</option>
+          <option value="customs_clearance">Em Desembaraço</option>
+          <option value="released">Liberado</option>
+          <option value="completed">Concluído</option>
+          <option value="suspended">Suspenso</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Processo</th><th>Fornecedor</th><th>Produto</th><th>NCM</th><th>Invoice</th><th>Custo Total</th><th>Impostos</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="customs-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Processo -->
+<div class="modal-overlay" id="modal-process">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="process-modal-title">Novo Processo Aduaneiro</span>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="process-form">
+        <input type="hidden" name="id">
+        <div class="form-row cols-2">
+          <div class="form-group"><label>Fornecedor</label>
+            <select name="supplier_id"><option value="">— Selecione —</option></select>
+          </div>
+          <div class="form-group"><label>NCM</label><input name="ncm_code" placeholder="0000.00.00" maxlength="20"></div>
+        </div>
+        <div class="form-group"><label>Descrição do Produto <span class="required">*</span></label><input name="product_description" required maxlength="500"></div>
+        <div class="form-row cols-4">
+          <div class="form-group"><label>Quantidade</label><input name="quantity" type="number" step="0.001" min="0"></div>
+          <div class="form-group"><label>Unidade</label><input name="unit" value="UN" maxlength="10"></div>
+          <div class="form-group"><label>Incoterm</label>
+            <select name="incoterm"><option value="FOB">FOB</option><option value="CIF">CIF</option><option value="EXW">EXW</option><option value="CFR">CFR</option><option value="DDP">DDP</option><option value="DAP">DAP</option></select>
+          </div>
+          <div class="form-group"><label>Modal</label>
+            <select name="transport_mode"><option value="sea">Marítimo</option><option value="air">Aéreo</option><option value="road">Rodoviário</option></select>
+          </div>
+        </div>
+
+        <div class="section-divider">💵 Valores da Invoice</div>
+        <div class="form-row cols-3">
+          <div class="form-group"><label>Valor Invoice <span class="required">*</span></label><input name="invoice_value" type="number" step="0.01" min="0.01" required oninput="calcTotals()"></div>
+          <div class="form-group"><label>Moeda</label>
+            <select name="currency" onchange="calcTotals()"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="BRL">BRL</option></select>
+          </div>
+          <div class="form-group"><label>Taxa de Câmbio</label><input name="exchange_rate" type="number" step="0.0001" placeholder="Ex: 5.10" oninput="calcTotals()"></div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group"><label>Frete Internacional</label><input name="freight_intl" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>Seguro</label><input name="insurance" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+        </div>
+
+        <div class="section-divider">🏛️ Impostos Federais (R$)</div>
+        <div class="form-row cols-4">
+          <div class="form-group"><label>II (%)</label><input name="ii_rate" type="number" step="0.01" value="0" oninput="calcTaxFromRate('ii')"></div>
+          <div class="form-group"><label>II (R$)</label><input name="ii_tax" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>IPI (%)</label><input name="ipi_rate" type="number" step="0.01" value="0" oninput="calcTaxFromRate('ipi')"></div>
+          <div class="form-group"><label>IPI (R$)</label><input name="ipi_tax" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+        </div>
+        <div class="form-row cols-4">
+          <div class="form-group"><label>PIS (%)</label><input name="pis_rate" type="number" step="0.01" value="0" oninput="calcTaxFromRate('pis')"></div>
+          <div class="form-group"><label>PIS (R$)</label><input name="pis_tax" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>COFINS (%)</label><input name="cofins_rate" type="number" step="0.01" value="0" oninput="calcTaxFromRate('cofins')"></div>
+          <div class="form-group"><label>COFINS (R$)</label><input name="cofins_tax" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group"><label>SISCOMEX (R$)</label><input name="siscomex_fee" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>AFRMM (R$)</label><input name="afrmm_fee" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+        </div>
+
+        <div class="section-divider">📦 Logística & ICMS</div>
+        <div class="form-row cols-4">
+          <div class="form-group"><label>Frete Doméstico</label><input name="freight_domestic" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>Armazenagem</label><input name="storage_cost" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>Despesas Portuárias</label><input name="port_charges" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>Despachante</label><input name="customs_broker_fee" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+        </div>
+        <div class="form-row cols-3">
+          <div class="form-group"><label>ICMS (%)</label><input name="icms_rate" type="number" step="0.01" value="0" oninput="calcTaxFromRate('icms')"></div>
+          <div class="form-group"><label>ICMS (R$)</label><input name="icms_tax" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>ICMS DIFAL (R$)</label><input name="icms_difal" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group"><label>Outros Custos</label><input name="other_costs" type="number" step="0.01" value="0" oninput="calcTotals()"></div>
+          <div class="form-group"><label>Previsão de Chegada</label><input name="estimated_arrival" type="date"></div>
+        </div>
+
+        <!-- Totals preview -->
+        <div id="totals-preview" style="background:#f8f9fa;border-radius:8px;padding:16px;margin-top:8px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center">
+            <div><div style="font-size:11px;color:var(--text-sec)">CIF (BRL)</div><div style="font-size:18px;font-weight:700;color:var(--primary)" id="preview-cif">R$ 0,00</div></div>
+            <div><div style="font-size:11px;color:var(--text-sec)">Total Impostos</div><div style="font-size:18px;font-weight:700;color:var(--warning)" id="preview-taxes">R$ 0,00</div></div>
+            <div><div style="font-size:11px;color:var(--text-sec)">Custo Total (Landed)</div><div style="font-size:20px;font-weight:700;color:var(--success)" id="preview-total">R$ 0,00</div></div>
+          </div>
+        </div>
+
+        <div class="form-group mt-3"><label>Observações</label><textarea name="notes" rows="2"></textarea></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-process')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-process">Salvar Processo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Status -->
+<div class="modal-overlay" id="modal-status">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header"><span class="modal-title">Atualizar Status do Processo</span><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="status-process-id">
+      <div class="form-group"><label>Status</label>
+        <select id="status-select">
+          <option value="draft">Rascunho</option>
+          <option value="in_progress">Em Andamento</option>
+          <option value="customs_clearance">Em Desembaraço</option>
+          <option value="released">Liberado</option>
+          <option value="completed">Concluído</option>
+          <option value="suspended">Suspenso</option>
+        </select>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Nº DI</label><input type="text" id="status-di" placeholder="Declaração de Importação"></div>
+        <div class="form-group"><label>Data de Chegada</label><input type="date" id="status-arrival"></div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Data Desembaraço</label><input type="date" id="status-clearance"></div>
+        <div class="form-group"><label>Data Entrega</label><input type="date" id="status-delivery"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-status')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirm-status">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Email -->
+<div class="modal-overlay" id="modal-email">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">📧 Notificar sobre Processo</span><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="email-process-id">
+      <div id="email-process-info" class="alert alert-info mb-3"></div>
+      <div class="form-group">
+        <label>Destinatários <span class="required">*</span></label>
+        <div id="email-recipients-tags" class="tags mt-1">
+          <div class="tag-input"><input type="email" id="email-recipient-input" placeholder="email@empresa.com"><button type="button" class="btn btn-ghost btn-sm" id="add-email-recipient">+ Add</button></div>
+        </div>
+        <div id="email-default-contacts" class="d-flex gap-2 mt-2" style="flex-wrap:wrap"></div>
+      </div>
+      <div class="form-group"><label>Mensagem</label><textarea id="email-message" rows="3"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-email')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-send-email">📤 Enviar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+Auth.requireAuth();
+initSidebar('customs');
+if (Auth.hasRole('admin')) {
+  document.getElementById('nav-admin-section').style.display = '';
+  document.getElementById('nav-users').classList.remove('hidden');
+}
+
+let emailTags;
+
+function getField(name) { return parseFloat(document.querySelector(`#process-form [name="${name}"]`)?.value) || 0; }
+
+function calcTaxFromRate(tax) {
+  const cif = calcCIF();
+  const rate = getField(`${tax}_rate`) / 100;
+  const field = document.querySelector(`#process-form [name="${tax}_tax"]`);
+  if (field && cif > 0) { field.value = (cif * rate).toFixed(2); calcTotals(); }
+}
+
+function calcCIF() {
+  const inv = getField('invoice_value');
+  const er = getField('exchange_rate') || 1;
+  const fr = getField('freight_intl');
+  const ins = getField('insurance');
+  return (inv + fr + ins) * er;
+}
+
+function calcTotals() {
+  const cif = calcCIF();
+  const taxes = ['ii_tax','ipi_tax','pis_tax','cofins_tax','siscomex_fee','afrmm_fee','icms_tax','icms_difal'].reduce((s, n) => s + getField(n), 0);
+  const logistics = ['freight_domestic','storage_cost','port_charges','customs_broker_fee','other_costs'].reduce((s, n) => s + getField(n), 0);
+  const total = cif + taxes + logistics;
+  document.getElementById('preview-cif').textContent = fmtBRL(cif);
+  document.getElementById('preview-taxes').textContent = fmtBRL(taxes);
+  document.getElementById('preview-total').textContent = fmtBRL(total);
+}
+
+async function loadStats() {
+  try {
+    const s = await API.get('/api/customs/stats');
+    document.getElementById('s-total').textContent = s.total || 0;
+    document.getElementById('s-progress').textContent = s.in_progress || 0;
+    document.getElementById('s-clearance').textContent = s.in_clearance || 0;
+    document.getElementById('s-completed').textContent = s.completed || 0;
+    document.getElementById('s-total-taxes').textContent = fmtBRL(s.total_taxes || 0);
+  } catch {}
+}
+
+async function loadProcesses() {
+  tableLoading('customs-tbody');
+  const status = document.getElementById('filter-status').value;
+  try {
+    const res = await API.get(`/api/customs${status ? '?status=' + status : ''}`);
+    const tbody = document.getElementById('customs-tbody');
+    if (!res.processes.length) { tableEmpty('customs-tbody', 'Nenhum processo encontrado', 9); return; }
+    const canEdit = Auth.hasRole('admin', 'manager');
+    tbody.innerHTML = res.processes.map(p => `<tr>
+      <td><strong>${p.process_number}</strong>${p.di_number ? `<br><span class="text-muted text-sm">DI: ${p.di_number}</span>` : ''}</td>
+      <td>${p.supplier_name || '—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.product_description}">${p.product_description}</td>
+      <td class="text-muted text-sm">${p.ncm_code || '—'}</td>
+      <td class="currency">${fmtCurrency(p.invoice_value, p.currency)}<br><span class="text-muted text-sm">${p.invoice_value_brl ? fmtBRL(p.invoice_value_brl) : ''}</span></td>
+      <td class="currency"><strong>${fmtBRL(p.total_landed_cost || 0)}</strong></td>
+      <td class="currency text-muted">${fmtBRL(p.total_taxes || 0)}</td>
+      <td>${badge(p.status)}</td>
+      <td style="white-space:nowrap">
+        ${canEdit ? `<button class="btn btn-ghost btn-sm" onclick="openStatusModal(${p.id}, '${p.status}')">📝</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="openEmailModal(${p.id})">📧</button>
+      </td>
+    </tr>`).join('');
+  } catch (err) { showToast('Erro: ' + err.message, 'error'); }
+}
+
+async function loadSupplierOptions() {
+  try {
+    const res = await API.get('/api/suppliers?status=active');
+    const sel = document.querySelector('#process-form [name="supplier_id"]');
+    res.suppliers.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sel.appendChild(o); });
+  } catch {}
+}
+
+document.getElementById('btn-new-process').addEventListener('click', () => {
+  clearForm(document.getElementById('process-form'));
+  document.getElementById('process-modal-title').textContent = 'Novo Processo Aduaneiro';
+  calcTotals();
+  openModal('modal-process');
+});
+
+document.getElementById('btn-save-process').addEventListener('click', async () => {
+  const form = document.getElementById('process-form');
+  const data = getFormData(form);
+  ['invoice_value','exchange_rate','freight_intl','insurance','ii_rate','ii_tax','ipi_rate','ipi_tax',
+   'pis_rate','pis_tax','cofins_rate','cofins_tax','siscomex_fee','afrmm_fee',
+   'freight_domestic','storage_cost','port_charges','icms_rate','icms_tax','icms_difal',
+   'customs_broker_fee','other_costs','quantity'].forEach(f => { data[f] = parseFloat(data[f]) || 0; });
+  try {
+    await API.post('/api/customs', data);
+    showToast('Processo criado!');
+    closeModal('modal-process');
+    loadProcesses(); loadStats();
+  } catch (err) { showToast(err.message, 'error'); if (err.details) showFieldErrors(err.details); }
+});
+
+function openStatusModal(id, status) {
+  document.getElementById('status-process-id').value = id;
+  document.getElementById('status-select').value = status;
+  ['status-di','status-arrival','status-clearance','status-delivery'].forEach(id => { document.getElementById(id).value = ''; });
+  openModal('modal-status');
+}
+
+document.getElementById('btn-confirm-status').addEventListener('click', async () => {
+  const id = document.getElementById('status-process-id').value;
+  try {
+    await API.patch(`/api/customs/${id}/status`, {
+      status: document.getElementById('status-select').value,
+      di_number: document.getElementById('status-di').value || null,
+      actual_arrival: document.getElementById('status-arrival').value || null,
+      clearance_date: document.getElementById('status-clearance').value || null,
+      delivery_date: document.getElementById('status-delivery').value || null,
+    });
+    showToast('Status atualizado!');
+    closeModal('modal-status');
+    loadProcesses(); loadStats();
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+async function openEmailModal(id) {
+  document.getElementById('email-process-id').value = id;
+  try {
+    const p = await API.get(`/api/customs/${id}`);
+    document.getElementById('email-process-info').textContent = `${p.process_number} — ${p.product_description} — ${fmtBRL(p.total_landed_cost || 0)}`;
+    const contacts = await API.get('/api/notifications/contacts');
+    const c = document.getElementById('email-default-contacts');
+    c.innerHTML = '';
+    contacts.contacts.forEach(ct => {
+      const btn = document.createElement('button'); btn.type='button'; btn.className='btn btn-ghost btn-sm';
+      btn.textContent = `+ ${ct.label}`; btn.onclick = () => emailTags?.add(ct.email); c.appendChild(btn);
+    });
+    if (emailTags) emailTags.clear();
+    emailTags = initTagInput('email-recipients-tags', 'email-recipient-input', 'add-email-recipient');
+    document.getElementById('email-message').value = '';
+    openModal('modal-email');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+document.getElementById('btn-send-email').addEventListener('click', async () => {
+  const id = document.getElementById('email-process-id').value;
+  const recipients = emailTags?.getTags() || [];
+  if (!recipients.length) { showToast('Adicione ao menos um destinatário', 'warning'); return; }
+  const btn = document.getElementById('btn-send-email');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    await API.post(`/api/customs/${id}/send-email`, { recipients, message: document.getElementById('email-message').value });
+    showToast('Email enviado!'); closeModal('modal-email');
+  } catch (err) { showToast(err.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📤 Enviar'; }
+});
+
+loadStats(); loadProcesses(); loadSupplierOptions();
+</script>
+</body>
+</html>

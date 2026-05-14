@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKTZ ERP — Pagamentos</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><img src="/images/logo.svg" alt="OKTZ" class="sidebar-logo-img"><div class="sub">Setor de Importação</div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a class="nav-item" data-page="dashboard" href="/dashboard">🏠 Dashboard</a>
+      <div class="nav-section">Módulos</div>
+      <a class="nav-item" data-page="suppliers" href="/suppliers">🏭 Fornecedores</a>
+      <a class="nav-item" data-page="payments" href="/payments">💳 Pagamentos</a>
+      <a class="nav-item" data-page="customs" href="/customs">🚢 Desembaraço</a>
+      <a class="nav-item" data-page="notifications" href="/notifications">📲 Notificações</a>
+      <div class="nav-section" id="nav-admin-section" style="display:none">Admin</div>
+      <a class="nav-item hidden" id="nav-users" data-page="users" href="/users">👥 Usuários</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-name" id="sidebar-user-name">—</div>
+      <div class="user-role" id="sidebar-user-role">—</div>
+      <div class="logout-btn" id="logout-btn">⬡ Sair do sistema</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top-header">
+      <span class="page-title">💳 Pagamentos</span>
+      <div class="header-actions">
+        <button class="btn btn-primary btn-sm" id="btn-new-payment">+ Novo Pagamento</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Summary cards -->
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+        <div class="stat-card"><div class="stat-icon blue">📋</div><div><div class="stat-value" id="s-total">—</div><div class="stat-label">Total</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">⏳</div><div><div class="stat-value" id="s-pending">—</div><div class="stat-label">Pendentes</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value" id="s-approved">—</div><div class="stat-label">Aprovados</div></div></div>
+        <div class="stat-card"><div class="stat-icon red">🚨</div><div><div class="stat-value" id="s-overdue">—</div><div class="stat-label">Vencidos</div></div></div>
+        <div class="stat-card"><div class="stat-icon teal">💵</div><div><div class="stat-value currency" id="s-pending-usd">—</div><div class="stat-label">A Pagar (USD)</div></div></div>
+      </div>
+
+      <div class="filters-bar">
+        <select id="filter-status" onchange="loadPayments()">
+          <option value="">Todos os status</option>
+          <option value="pending">Pendente</option>
+          <option value="approved">Aprovado</option>
+          <option value="paid">Pago</option>
+          <option value="overdue">Vencido</option>
+          <option value="cancelled">Cancelado</option>
+        </select>
+        <input type="date" id="filter-from" onchange="loadPayments()" title="De">
+        <input type="date" id="filter-to" onchange="loadPayments()" title="Até">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filter-from').value='';document.getElementById('filter-to').value='';loadPayments()">Limpar datas</button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fornecedor</th><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Invoice</th><th>Email</th><th>Ações</th></tr></thead>
+            <tbody id="payments-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Novo Pagamento -->
+<div class="modal-overlay" id="modal-payment">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="payment-modal-title">Novo Pagamento</span>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="payment-form">
+        <input type="hidden" name="id">
+        <div class="form-group"><label>Fornecedor</label>
+          <select name="supplier_id"><option value="">— Selecione —</option></select>
+        </div>
+        <div class="form-group"><label>Descrição <span class="required">*</span></label><input name="description" required maxlength="500"></div>
+        <div class="form-row cols-3">
+          <div class="form-group"><label>Valor <span class="required">*</span></label><input name="amount" type="number" step="0.01" min="0.01" required></div>
+          <div class="form-group"><label>Moeda <span class="required">*</span></label>
+            <select name="currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="CNY">CNY</option><option value="BRL">BRL</option></select>
+          </div>
+          <div class="form-group"><label>Câmbio (BRL)</label><input name="exchange_rate" type="number" step="0.0001" placeholder="Ex: 5.10"></div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group"><label>Valor em BRL</label><input name="amount_brl" type="number" step="0.01" placeholder="Calculado automaticamente"></div>
+          <div class="form-group"><label>Vencimento <span class="required">*</span></label><input name="due_date" type="date" required></div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group"><label>Invoice / Referência</label><input name="invoice_ref" maxlength="100"></div>
+          <div class="form-group"><label>Forma de Pagamento</label><input name="payment_method" placeholder="Ex: Wire Transfer, SWIFT, PIX"></div>
+        </div>
+        <div class="form-group"><label>Dados Bancários</label><textarea name="bank_info" rows="2" placeholder="IBAN, SWIFT, banco..."></textarea></div>
+        <div class="form-group"><label>Observações</label><textarea name="notes" rows="2"></textarea></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-payment')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save-payment">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Atualizar Status -->
+<div class="modal-overlay" id="modal-status">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title">Atualizar Status</span>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="status-payment-id">
+      <div class="form-group"><label>Novo Status</label>
+        <select id="status-select">
+          <option value="pending">Pendente</option>
+          <option value="approved">Aprovado</option>
+          <option value="paid">Pago</option>
+          <option value="overdue">Vencido</option>
+          <option value="cancelled">Cancelado</option>
+        </select>
+      </div>
+      <div class="form-group"><label>SWIFT / Ref. Bancária</label><input type="text" id="status-swift" placeholder="Opcional — para pagamentos realizados"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-status')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirm-status">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Enviar Email -->
+<div class="modal-overlay" id="modal-email">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">📧 Enviar Notificação por Email</span>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="email-payment-id">
+
+      <div id="email-payment-info" class="alert alert-info mb-3"></div>
+
+      <div class="form-group">
+        <label>Destinatários <span class="required">*</span></label>
+        <div id="recipients-tags" class="tags mt-1">
+          <div class="tag-input">
+            <input type="email" id="recipient-input" placeholder="email@empresa.com">
+            <button type="button" class="btn btn-ghost btn-sm" id="add-recipient-btn">+ Adicionar</button>
+          </div>
+        </div>
+        <div class="form-hint mt-1">Contatos padrão:</div>
+        <div id="default-contacts" class="d-flex gap-2 mt-1" style="flex-wrap:wrap"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Cópia (CC)</label>
+        <div id="cc-tags" class="tags mt-1">
+          <div class="tag-input">
+            <input type="email" id="cc-input" placeholder="email@empresa.com">
+            <button type="button" class="btn btn-ghost btn-sm" id="add-cc-btn">+ Adicionar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Mensagem adicional</label>
+        <textarea id="email-message" rows="4" placeholder="Mensagem opcional a ser incluída no email..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-email')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-send-email">📤 Enviar Email</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script>
+Auth.requireAuth();
+initSidebar('payments');
+if (Auth.hasRole('admin')) {
+  document.getElementById('nav-admin-section').style.display = '';
+  document.getElementById('nav-users').classList.remove('hidden');
+}
+
+let recipientTags, ccTags;
+
+async function loadSummary() {
+  try {
+    const s = await API.get('/api/payments/summary');
+    document.getElementById('s-total').textContent = s.total || 0;
+    document.getElementById('s-pending').textContent = s.pending || 0;
+    document.getElementById('s-approved').textContent = s.approved || 0;
+    document.getElementById('s-overdue').textContent = s.overdue || 0;
+    document.getElementById('s-pending-usd').textContent = fmtUSD(s.pending_usd || 0);
+  } catch {}
+}
+
+async function loadPayments() {
+  tableLoading('payments-tbody');
+  const status = document.getElementById('filter-status').value;
+  const from = document.getElementById('filter-from').value;
+  const to = document.getElementById('filter-to').value;
+  let url = '/api/payments?';
+  if (status) url += `status=${status}&`;
+  if (from) url += `from=${from}&`;
+  if (to) url += `to=${to}&`;
+
+  try {
+    const res = await API.get(url);
+    const tbody = document.getElementById('payments-tbody');
+    if (!res.payments.length) { tableEmpty('payments-tbody', 'Nenhum pagamento encontrado', 8); return; }
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    tbody.innerHTML = res.payments.map(p => {
+      const due = new Date(p.due_date + 'T12:00:00');
+      const isOverdue = due < today && !['paid','cancelled'].includes(p.status);
+      const canEdit = Auth.hasRole('admin', 'manager');
+      return `<tr>
+        <td>${p.supplier_name || '—'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.description}">${p.description}</td>
+        <td class="currency"><strong>${fmtCurrency(p.amount, p.currency)}</strong>${p.amount_brl ? `<br><span class="text-muted text-sm">${fmtBRL(p.amount_brl)}</span>` : ''}</td>
+        <td style="color:${isOverdue?'var(--danger)':'inherit'};font-weight:${isOverdue?700:400}">${fmtDate(p.due_date)}</td>
+        <td>${badge(p.status)}</td>
+        <td class="text-muted text-sm">${p.invoice_ref || '—'}</td>
+        <td class="text-center">${p.email_sent ? `<span title="Enviado em ${fmtDate(p.email_sent_at)}">✅</span>` : '—'}</td>
+        <td style="white-space:nowrap">
+          ${canEdit ? `<button class="btn btn-ghost btn-sm" onclick="openStatusModal(${p.id}, '${p.status}')">📝</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="openEmailModal(${p.id})">📧</button>
+          ${Auth.hasRole('admin') && p.status !== 'paid' ? `<button class="btn btn-danger btn-sm" onclick="deletePayment(${p.id})">🗑</button>` : ''}
+        </td>
+      </tr>`;
+    }).join('');
+  } catch (err) { showToast('Erro: ' + err.message, 'error'); }
+}
+
+async function loadSupplierOptions() {
+  try {
+    const res = await API.get('/api/suppliers?status=active');
+    const sel = document.querySelector('#payment-form [name="supplier_id"]');
+    res.suppliers.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sel.appendChild(o); });
+  } catch {}
+}
+
+document.getElementById('btn-new-payment').addEventListener('click', () => {
+  clearForm(document.getElementById('payment-form'));
+  document.getElementById('payment-modal-title').textContent = 'Novo Pagamento';
+  openModal('modal-payment');
+});
+
+// Auto-calculate BRL
+['amount','exchange_rate'].forEach(name => {
+  document.querySelector(`#payment-form [name="${name}"]`)?.addEventListener('input', () => {
+    const amount = parseFloat(document.querySelector('[name="amount"]').value) || 0;
+    const rate = parseFloat(document.querySelector('[name="exchange_rate"]').value) || 0;
+    if (amount && rate) document.querySelector('[name="amount_brl"]').value = (amount * rate).toFixed(2);
+  });
+});
+
+document.getElementById('btn-save-payment').addEventListener('click', async () => {
+  const form = document.getElementById('payment-form');
+  const data = getFormData(form);
+  data.amount = parseFloat(data.amount);
+  data.exchange_rate = parseFloat(data.exchange_rate) || null;
+  data.amount_brl = parseFloat(data.amount_brl) || null;
+  try {
+    await API.post('/api/payments', data);
+    showToast('Pagamento criado!');
+    closeModal('modal-payment');
+    loadPayments(); loadSummary();
+  } catch (err) {
+    showToast(err.message, 'error');
+    if (err.details) showFieldErrors(err.details);
+  }
+});
+
+function openStatusModal(id, currentStatus) {
+  document.getElementById('status-payment-id').value = id;
+  document.getElementById('status-select').value = currentStatus;
+  document.getElementById('status-swift').value = '';
+  openModal('modal-status');
+}
+
+document.getElementById('btn-confirm-status').addEventListener('click', async () => {
+  const id = document.getElementById('status-payment-id').value;
+  const status = document.getElementById('status-select').value;
+  const swift_ref = document.getElementById('status-swift').value;
+  try {
+    await API.patch(`/api/payments/${id}/status`, { status, swift_ref });
+    showToast('Status atualizado!');
+    closeModal('modal-status');
+    loadPayments(); loadSummary();
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+async function openEmailModal(id) {
+  document.getElementById('email-payment-id').value = id;
+  try {
+    const p = await API.get(`/api/payments/${id}`);
+    document.getElementById('email-payment-info').innerHTML =
+      `<strong>${p.supplier_name || 'Fornecedor'}</strong> — ${fmtCurrency(p.amount, p.currency)} — Vence: ${fmtDate(p.due_date)}`;
+
+    // Load default contacts
+    const contacts = await API.get('/api/notifications/contacts');
+    const container = document.getElementById('default-contacts');
+    container.innerHTML = '';
+    contacts.contacts.forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-ghost btn-sm';
+      btn.textContent = `+ ${c.label}`;
+      btn.onclick = () => { recipientTags?.add(c.email); };
+      container.appendChild(btn);
+    });
+
+    // Init tag inputs
+    if (recipientTags) recipientTags.clear();
+    if (ccTags) ccTags.clear();
+    recipientTags = initTagInput('recipients-tags', 'recipient-input', 'add-recipient-btn');
+    ccTags = initTagInput('cc-tags', 'cc-input', 'add-cc-btn');
+    document.getElementById('email-message').value = '';
+    openModal('modal-email');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+document.getElementById('btn-send-email').addEventListener('click', async () => {
+  const id = document.getElementById('email-payment-id').value;
+  const recipients = recipientTags?.getTags() || [];
+  if (!recipients.length) { showToast('Adicione ao menos um destinatário', 'warning'); return; }
+  const btn = document.getElementById('btn-send-email');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    await API.post(`/api/payments/${id}/send-email`, {
+      recipients,
+      cc: ccTags?.getTags() || [],
+      message: document.getElementById('email-message').value,
+    });
+    showToast('Email enviado com sucesso! ✉️');
+    closeModal('modal-email');
+    loadPayments();
+  } catch (err) { showToast(err.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = '📤 Enviar Email'; }
+});
+
+async function deletePayment(id) {
+  if (!confirmAction('Excluir este pagamento?')) return;
+  try {
+    await API.delete(`/api/payments/${id}`);
+    showToast('Pagamento excluído');
+    loadPayments(); loadSummary();
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+loadSummary();
+loadPayments();
+loadSupplierOptions();
+</script>
+</body>
+</html>
